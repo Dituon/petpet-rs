@@ -39,6 +39,12 @@ impl From<meval::Error> for Error<'_> {
     }
 }
 
+impl From<skia_safe::codec::Result> for Error<'_> {
+    fn from(_: skia_safe::codec::Result) -> Self {
+        Error::ImageDecodeError("")
+    }
+}
+
 impl<T> From<std::sync::PoisonError<T>> for Error<'_> {
     fn from(_error: std::sync::PoisonError<T>) -> Self {
         Error::SyncPoisonError(std::sync::PoisonError::new(""))

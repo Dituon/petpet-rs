@@ -22,13 +22,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let data = read_file_to_string(&(String::from(path) + "/data.json"));
 
     let template: PetpetTemplate = serde_json::from_str(&data).unwrap();
-    println!("{:#?}", template);
 
     let builder = PetpetBuilder::new(template, path)?;
 
     let urls = AvatarDataURL {
         from: None,
-        to: Option::from("https://avatars.githubusercontent.com/u/68615161?s=640"),
+        //to: Option::from("https://avatars.githubusercontent.com/u/68615161?s=640"),
+        to: Option::from("https://user-images.githubusercontent.com/14011726/94132137-7d4fc100-fe7c-11ea-8512-69f90cb65e48.gif"),
         bot: None,
         group: None,
         random: vec![],
@@ -41,11 +41,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn save_image_to_file(image: &Image, filename: &str) {
+pub fn save_image_to_file(image: &Image, filename: &str) {
     let data = image.encode_to_data(EncodedImageFormat::PNG).unwrap();
     let mut file = std::fs::File::create(filename).unwrap();
     file.write_all(data.as_bytes()).unwrap();
 }
+
 
 fn read_file_to_string(file_path: &str) -> String {
     println!("{}", file_path);

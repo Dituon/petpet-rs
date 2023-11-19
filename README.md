@@ -52,7 +52,7 @@
 
 #### Core
 
-- [ ] decode GIF
+- [x] decode GIF
 - [ ] encode GIF
 
 #### Server
