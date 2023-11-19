@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::core::template::avatar_template::AvatarTemplate;
-use crate::core::template::backgroud_template::BackgroundTemplate;
+use crate::core::template::background_template::BackgroundTemplate;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum PetpetType {

@@ -4,7 +4,7 @@ use crate::core::builder::pos_builder::{compile_size, CompiledSize, eval_backgro
 use crate::core::errors::Error;
 use crate::core::errors::Error::TemplateError;
 use crate::core::loader::image_loader::load_cached_background;
-use crate::core::template::backgroud_template::BackgroundTemplate;
+use crate::core::template::background_template::BackgroundTemplate;
 
 pub struct BackgroundBuilder<'a> {
     pub template: Option<(CompiledSize, Color)>,

@@ -1,0 +1,11 @@
+{
+  "type": "IMG",
+  "avatar": [{
+    "type": "TO",
+    "posType": "DEFORM",
+    "pos": [
+      [3, 79], [0, 533], [336, 938], [330, 1], [272, -84]
+    ],
+    "avatarOnTop": false
+  }]
+}

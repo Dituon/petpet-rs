@@ -1,12 +1,12 @@
-use alloc::rc::Rc;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
-use futures::future::BoxFuture;
+use futures::future::{BoxFuture, join_all};
+use rand::Rng;
 use skia_safe::Image;
 
 use crate::core::builder::pos_builder::{compile_pos, CompiledPos};
 use crate::core::errors::Error;
-use crate::core::errors::Error::TemplateError;
+use crate::core::errors::Error::{MissingDataError, TemplateError};
 use crate::core::model::avatar_model::AvatarModel;
 use crate::core::template::avatar_template::{AvatarPosType, AvatarTemplate, AvatarType, PosDimension};
 
@@ -31,7 +31,7 @@ pub struct AvatarBuilder {
     pos: CompiledPos,
 }
 
-pub type AvatarDataItem<'a> = Option<Arc<Mutex<BoxFuture<'a, Result<Arc<Vec<Image>>, Error<'a>>>>>>;
+pub type AvatarDataItem<'a> = Option<BoxFuture<'a, Result<Arc<Vec<Image>>, Error<'a>>>>;
 
 pub struct AvatarData<'a> {
     pub from: AvatarDataItem<'a>,
@@ -61,10 +61,84 @@ impl AvatarBuilder {
 
         Ok(AvatarBuilder {
             template,
-            pos
+            pos,
         })
     }
-    pub async fn build<'a>(&'a self, data: Rc<AvatarData<'a>>) -> Result<AvatarModel<'a>, Error> {
-        AvatarModel::new(&self.template, data, &self.pos).await
+    pub fn build<'a>(&'a self, images: Arc<Vec<Image>>) -> Result<AvatarModel<'a>, Error> {
+        AvatarModel::new(&self.template, images, &self.pos)
     }
+}
+
+pub struct AvatarBuilderList {
+    types: usize,
+    pub builders: Vec<(usize, bool, AvatarBuilder)>,
+}
+
+impl AvatarBuilderList {
+    pub fn new<'a>(templates: Vec<AvatarTemplate>) -> Result<AvatarBuilderList, Error<'a>> {
+        let mut types = 0;
+        let mut items = Vec::with_capacity(templates.len());
+        for avatar in templates {
+            types = types | by_type(&avatar._type);
+            items.push((
+                by_type(&avatar._type),
+                avatar.avatar_on_top,
+                AvatarBuilder::new(avatar.clone())?,
+            ));
+        };
+        Ok(AvatarBuilderList {
+            types,
+            builders: items,
+        })
+    }
+
+    pub async fn build<'a>(&'a self, data: AvatarData<'a>) -> Result<Vec<AvatarModel<'a>>, Error<'a>> {
+        // if self.types & if data.from.is_none() { 0 } else { FROM } == 0
+        //     && self.types & if data.to.is_none() { 0 } else { TO } == 0
+        //     && self.types & if data.bot.is_none() { 0 } else { BOT } == 0
+        //     && self.types & if data.group.is_none() { 0 } else { GROUP } == 0
+        //     && self.types & if data.random.is_none() { 0 } else { RANDOM } == 0 {
+        //     return Err(MissingDataError(""));
+        // }
+        let (futures, types) = build_future(self.types, data)?;
+        let mut res = join_all(futures).await;
+        let mut avatars = Vec::with_capacity(res.len());
+        for i in 0..res.len() {
+            let t = types[i];
+            let imgs = &res.remove(i)?;
+            for (_, _, builder) in &self.builders {
+                 if by_type(&builder.template._type) != t {
+                     continue
+                 }
+                avatars.push(builder.build(Arc::clone(imgs))?);
+            }
+        }
+
+        Ok(avatars)
+    }
+}
+
+fn build_future(types: usize, data: AvatarData)
+                -> Result<(Vec<BoxFuture<Result<Arc<Vec<Image>>, Error>>>, Vec<usize>), Error> {
+    let mut future_vec = Vec::with_capacity(5);
+    let mut extra_vec: Vec<usize> = Vec::with_capacity(5);
+    if types & FROM != 0 {
+        future_vec.push(data.from.ok_or_else(|| MissingDataError("Missing FROM data"))?);
+        extra_vec.push(FROM);
+    } else if types & TO != 0 {
+        future_vec.push(data.to.ok_or_else(|| MissingDataError("Missing TO data"))?);
+        extra_vec.push(TO);
+    } else if types & GROUP != 0 {
+        future_vec.push(data.group.ok_or_else(|| MissingDataError("Missing GROUP data"))?);
+        extra_vec.push(GROUP);
+    } else if types & BOT != 0 {
+        future_vec.push(data.bot.ok_or_else(|| MissingDataError("Missing BOT data"))?);
+        extra_vec.push(BOT);
+    } else if types & RANDOM != 0 {
+        let mut vec = data.random;
+        let index = rand::thread_rng().gen_range(0..vec.len());
+        future_vec.push(vec.remove(index).ok_or_else(|| MissingDataError("Missing RANDOM data"))?);
+        extra_vec.push(RANDOM);
+    }
+    Ok((future_vec, extra_vec))
 }

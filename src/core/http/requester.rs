@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::Duration;
 use std::vec;
 
@@ -46,7 +46,6 @@ impl Requester {
                 Err(e) => Err(e)
             }
         });
-
-        Some(Arc::new(Mutex::new(future)))
+        Some(future)
     }
 }

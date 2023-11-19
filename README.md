@@ -20,13 +20,30 @@
 
 **Text**
 
-- [ ] Text.*
+- [ ] `Text.*`
 
 **Avatar**
 
-- [x] Avatar.pos
-- [x] Avatar.posType
-- [ ] Avatar.*
+- [x] `Avatar.type`
+
+- [x] `Avatar.pos`
+- [x] `Avatar.posType`
+
+- [ ] `Avatar.crop`
+- [ ] `Avatar.cropType`
+
+- [ ] `Avatar.style`
+- [ ] `Avatar.filter`
+- [x] `Avatar.fit`
+
+- [ ] `Avatar.round`
+- [x] `Avatar.rotate`
+- [x] `Avatar.origin`
+- [x] `Avatar.avatarOnTop`
+
+- [x] `Avatar.angle`
+- [x] `Avatar.opacity`
+
 
 **Background**
 
