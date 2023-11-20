@@ -6,8 +6,10 @@ use std::fs::File;
 use std::io::Read;
 use std::io::Write;
 use std::string::String;
+use gif::Repeat;
 
-use skia_safe::{EncodedImageFormat, Image};
+use skia_safe::{ColorType, EncodedImageFormat, Image};
+use skia_safe::gpu::DirectContext;
 
 use crate::core::builder::petpet_builder::PetpetBuilder;
 use crate::core::http::avatar_data_factory::{AvatarDataURL, create_avatar_data};
@@ -47,6 +49,29 @@ pub fn save_image_to_file(image: &Image, filename: &str) {
     file.write_all(data.as_bytes()).unwrap();
 }
 
+pub fn save_images_to_file(images: &Vec<Image>, filename: &str) {
+    // let context = DirectContext::new_gl(None, None);
+
+    let mut image = File::create(filename).unwrap();
+    let mut encoder = gif::Encoder::new(
+        &mut image,
+        images[0].width() as u16,
+        images[0].height() as u16,
+        &[]
+    ).unwrap();
+    encoder.set_repeat(Repeat::Infinite);
+    for img in images {
+        let mut ps = img.peek_pixels().unwrap().bytes().unwrap().to_owned();
+        let mut frame = gif::Frame::from_rgba_speed(
+            img.width() as u16,
+            img.height() as u16,
+            &mut ps,
+            10
+        );
+        frame.delay = 65;
+        encoder.write_frame(&frame);
+    }
+}
 
 fn read_file_to_string(file_path: &str) -> String {
     println!("{}", file_path);
