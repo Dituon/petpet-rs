@@ -15,7 +15,7 @@ pub type RO = (P, P, P, P, P);
 #[derive(Debug, Clone)]
 pub enum CompiledNumberPosDimension {
     P2D(Vec<XYWH>),
-    P3D(Vec<[Point; 4]>)
+    P3D(Vec<[Point; 4]>),
 }
 
 pub type Expr3DIndex = (usize, usize, usize);
@@ -26,16 +26,18 @@ pub type CompiledExprVec = Vec<CompiledExpr>;
 
 pub type CompiledPos = (CompiledNumberPosDimension, CompiledExprVec);
 
-pub fn compile_pos<'a>(origin_pos: PosDimension) -> Result<CompiledPos, Error<'a>> {
+pub fn compile_pos<'a>(origin_pos: PosDimension) -> Result<CompiledPos, Error> {
     let mut expr_pos: CompiledExprVec = Vec::new();
 
     let number_pos: CompiledNumberPosDimension = match origin_pos {
-        PosDimension::P1D(_) => return Err(TemplateError(""))?,
+        PosDimension::P1D(_) => return Err(TemplateError("".to_string()))?,
         PosDimension::P2D(p2d) => {
             let mut result: Vec<XYWH> = Vec::with_capacity(p2d.len());
             for (x_index, xywh) in p2d.iter().enumerate() {
                 if xywh.len() != 4 {
-                    return Err(TemplateError("xywh pos length must == 4"))?
+                    return Err(TemplateError(
+                        format!("xywh pos length must == 4 ({:?})", xywh)
+                    ))?;
                 }
                 let pair: Vec<i32> = xywh.iter().enumerate().map(|(y_index, p)|
                     compile_pos_item(p, &mut expr_pos, (x_index, y_index, 0))
@@ -43,28 +45,32 @@ pub fn compile_pos<'a>(origin_pos: PosDimension) -> Result<CompiledPos, Error<'a
                 result.push((pair[0], pair[1], pair[2], pair[3]))
             }
             CompiledNumberPosDimension::P2D(result)
-        },
+        }
         PosDimension::P3D(p3d) => {
             let mut result = Vec::with_capacity(p3d.len());
             for (x_index, ro) in p3d.iter().enumerate() {
                 if ro.len() != 5 {
-                    Err(TemplateError("deform pos length must == 5"))?
+                    Err(TemplateError(
+                        format!("deform pos length must == 5 ({:?})", ro)
+                    ))?
                 }
                 let mut pair: [(i32, i32); 5] = [(0, 0); 5];
                 let mut ri = 0;
                 for (y_index, p) in ro.iter().enumerate() {
                     if p.len() != 2 {
-                        return Err(TemplateError("deform pos point length must == 2"))
+                        return Err(TemplateError(
+                            format!("deform pos point length must == 2 ({:?})", p)
+                        ));
                     }
                     let x = compile_pos_item(
                         &p[0],
                         &mut expr_pos,
-                        (x_index, y_index, 0)
+                        (x_index, y_index, 0),
                     );
                     let y = compile_pos_item(
                         &p[1],
                         &mut expr_pos,
-                        (x_index, y_index, 1)
+                        (x_index, y_index, 1),
                     );
                     pair[ri] = (x, y);
                     ri += 1;
@@ -95,7 +101,7 @@ pub fn compile_pos<'a>(origin_pos: PosDimension) -> Result<CompiledPos, Error<'a
 pub fn compile_pos_item(
     pos_item: &PosItem,
     expr_vec: &mut CompiledExprVec,
-    index3d: Expr3DIndex
+    index3d: Expr3DIndex,
 ) -> i32 {
     match pos_item {
         PosItem::Num(p_num) => p_num.clone(),
@@ -111,8 +117,8 @@ pub fn compile_pos_item(
 
 pub fn eval_size<'a>(
     (num_pos, expr_vec): (&CompiledNumberPosDimension, &CompiledExprVec),
-    (width, height): OriginSize
-) -> Result<CompiledNumberPosDimension, Error<'a>> {
+    (width, height): OriginSize,
+) -> Result<CompiledNumberPosDimension, Error> {
     let mut ctx = meval::Context::new();
     ctx.var("width", width as f64).var("height", height as f64);
 
@@ -126,11 +132,11 @@ pub fn eval_size<'a>(
                     1 => p2d[*x].1 = num,
                     2 => p2d[*x].2 = num,
                     3 => p2d[*x].3 = num,
-                    _ => return Err(TemplateError("Unknown zoom avatar error"))
+                    _ => return Err(TemplateError("Unknown zoom avatar error".to_string()))
                 };
             }
             CompiledNumberPosDimension::P2D(p2d)
-        },
+        }
         CompiledNumberPosDimension::P3D(p3d) => {
             // for (expr, (x, y, z)) in expr_vec {
             //     let num = expr.eval_with_context(&ctx)?.round() as i32;
@@ -158,9 +164,9 @@ pub type CompiledSizeExpr = (Expr, usize);
 
 pub type CompiledSize = (OriginSize, Vec<CompiledSizeExpr>);
 
-pub fn compile_size (
+pub fn compile_size(
     (width, height): &(PosItem, PosItem)
-) -> CompiledSize{
+) -> CompiledSize {
     let mut expr_vec: Vec<CompiledSizeExpr> = Vec::new();
     let w = match width {
         PosItem::Num(p_num) => p_num.clone(),
@@ -187,7 +193,7 @@ pub fn compile_size (
 
 pub fn eval_background_size(
     (size, expr_vec): &CompiledSize,
-    avatar_size: Vec<OriginSize>
+    avatar_size: Vec<OriginSize>,
 ) -> Result<OriginSize, Error> {
     let mut ctx = meval::Context::new();
 
@@ -201,7 +207,7 @@ pub fn eval_background_size(
         match index {
             0 => result.0 = expr.eval_with_context(&ctx)?.round() as i32,
             1 => result.1 = expr.eval_with_context(&ctx)?.round() as i32,
-            _ => return Err(TemplateError("Unknown background size error"))
+            _ => return Err(TemplateError("Unknown background size error".to_string()))
         }
     }
     Ok(result)

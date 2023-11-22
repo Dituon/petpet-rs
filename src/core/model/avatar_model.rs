@@ -29,9 +29,9 @@ impl<'a> AvatarModel<'a> {
         template: &'a AvatarTemplate,
         images: Arc<Vec<Image>>,
         (num_pos, expr_pos): &'a CompiledPos,
-    ) -> Result<AvatarModel<'a>, Error<'a>> {
+    ) -> Result<AvatarModel<'a>, Error> {
         if images.as_ref().is_empty() {
-            return Err(AvatarLoadError(""));
+            return Err(AvatarLoadError("avatars vac is empty".to_string()));
         }
 
         if !expr_pos.is_empty() {
@@ -59,12 +59,16 @@ impl<'a> AvatarModel<'a> {
         (image.width(), image.height())
     }
 
-    pub fn draw(&self, canvas: &Canvas, index: usize) -> Result<(), Error<'a>> {
+    fn get_image(&self, index: usize) -> &Image {
+        return &self.images.as_ref()[index % self.images.len()]
+    }
+
+    pub fn draw(&self, canvas: &Canvas, index: usize) -> Result<(), Error> {
         println!("{}", index);
         match &self.pos.as_ref() {
             CompiledNumberPosDimension::P2D(p2d) => {
                 let p2d = p2d[index];
-                let img = &self.images.as_ref()[index];
+                let img = self.get_image(index);
                 self.draw_zoom(canvas, img, p2d);
             }
             CompiledNumberPosDimension::P3D(p3d) => {
@@ -74,7 +78,9 @@ impl<'a> AvatarModel<'a> {
                     Point::new(0.0, img.height() as f32),
                     Point::new(img.width() as f32, img.height() as f32),
                     Point::new(img.width() as f32, 0.0),
-                ], &p3d[index]).ok_or(TemplateError("can not build Matrix"))?;
+                ], &p3d[index]).ok_or(TemplateError(
+                    format!("can not build Matrix, {:?}", &p3d[index])
+                ))?;
                 canvas.set_matrix(&(M44::from(m)));
                 canvas.draw_image(img, (0, 0), None);
                 canvas.reset_matrix();

@@ -1,4 +1,4 @@
-use skia_safe::Image;
+use skia_safe::{Canvas, Image, SurfaceProps};
 
 use crate::core::builder::avatar_builder::{AvatarBuilderList, AvatarData};
 use crate::core::builder::background_builder::BackgroundBuilder;
@@ -6,26 +6,23 @@ use crate::core::errors::Error;
 use crate::core::loader::image_loader::has_image;
 use crate::core::template::petpet_template::PetpetTemplate;
 
-pub struct PetpetBuilder<'a> {
+pub struct PetpetBuilder {
     pub template: PetpetTemplate,
-    pub types: usize,
     avatar_builders: AvatarBuilderList,
-    background_builder: BackgroundBuilder<'a>,
+    background_builder: BackgroundBuilder,
 }
 
-impl PetpetBuilder<'_>{
-    pub fn new<'a>(template: PetpetTemplate, background_path: &'a str) -> Result<PetpetBuilder<'a>, Error<'a>> {
-        let mut types = 0;
+impl PetpetBuilder{
+    pub fn new<'a>(template: PetpetTemplate, background_path: String) -> Result<PetpetBuilder, Error> {
         let avatar_builders = AvatarBuilderList::new(template.avatar.clone())?;
 
         let background_builder = BackgroundBuilder::new(
             template.background.clone(),
-            if has_image(background_path) { Some(background_path) } else { None }
+            if has_image(&background_path) { Some(background_path) } else { None }
         )?;
 
         Ok(PetpetBuilder {
-            template: template,
-            types,
+            template,
             avatar_builders,
             background_builder,
         })
@@ -50,7 +47,8 @@ impl PetpetBuilder<'_>{
         let mut result = Vec::with_capacity(bgs.len());
 
         for (i, bg) in bgs.iter().enumerate() {
-            let canvas = surface.canvas();
+            let mut canvas = surface.canvas();
+            // println!("canvas {:?}", canvas.image_info());
             for ba in &bottom_avatars {
                 ba.draw(canvas, i)?;
             }

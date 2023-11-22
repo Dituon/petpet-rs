@@ -2,7 +2,7 @@ use std::path::Path;
 
 use once_cell::sync::Lazy;
 use schnellru::{ByMemoryUsage, LruMap};
-use skia_safe::{Data, Image};
+use skia_safe::{AlphaType, Codec, ColorType, Data, Image, ImageInfo};
 
 use crate::core::errors::Error::{self, FileError, ImageDecodeError};
 
@@ -18,12 +18,19 @@ pub fn has_image(path: &str) -> bool {
     image_path.exists()
 }
 
-pub fn load_image(path: String) -> Result<Image, Error<'static>> {
-    if let Ok(image_data) = std::fs::read(path) {
-        let data = Data::new_copy(&image_data);
-        Image::from_encoded(data).ok_or_else(|| ImageDecodeError(""))
+pub fn load_image(path: String) -> Result<Image, Error> {
+    if let Ok(blob) = std::fs::read(&path) {
+        let data = Data::new_copy(blob.as_ref());
+        let mut codec = Codec::from_data(data).unwrap();
+        let info = ImageInfo::new(
+            codec.dimensions(),
+            ColorType::RGBA8888,
+            AlphaType::Premul,
+            None,
+        );
+        codec.get_image(info, None).map_err(|_| ImageDecodeError(path))
     } else {
-        Err(FileError("Can not read file"))
+        Err(FileError(path))
     }
 }
 

@@ -6,41 +6,18 @@ use std::fs::File;
 use std::io::Read;
 use std::io::Write;
 use std::string::String;
+
 use gif::Repeat;
-
-use skia_safe::{ColorType, EncodedImageFormat, Image};
-use skia_safe::gpu::DirectContext;
-
-use crate::core::builder::petpet_builder::PetpetBuilder;
-use crate::core::http::avatar_data_factory::{AvatarDataURL, create_avatar_data};
-use crate::core::template::petpet_template::PetpetTemplate;
+use skia_safe::{EncodedImageFormat, Image};
+use crate::server::server::PetpetServer;
 
 mod core;
+mod server;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
-    let path = "./data1";
-
-    let data = read_file_to_string(&(String::from(path) + "/data.json"));
-
-    let template: PetpetTemplate = serde_json::from_str(&data).unwrap();
-
-    let builder = PetpetBuilder::new(template, path)?;
-
-    let urls = AvatarDataURL {
-        from: None,
-        //to: Option::from("https://avatars.githubusercontent.com/u/68615161?s=640"),
-        to: Option::from("https://user-images.githubusercontent.com/14011726/94132137-7d4fc100-fe7c-11ea-8512-69f90cb65e48.gif"),
-        bot: None,
-        group: None,
-        random: vec![],
-    };
-
-    let avatar_data = create_avatar_data(&urls).unwrap();
-    let f = builder.build(avatar_data).await.unwrap();
-    let img = &f[0];
-    save_image_to_file(img, "output.png");
-    Ok(())
+async fn main() {
+    let server = PetpetServer::new().unwrap();
+    server.run().await;
 }
 
 pub fn save_image_to_file(image: &Image, filename: &str) {
@@ -50,8 +27,6 @@ pub fn save_image_to_file(image: &Image, filename: &str) {
 }
 
 pub fn save_images_to_file(images: &Vec<Image>, filename: &str) {
-    // let context = DirectContext::new_gl(None, None);
-
     let mut image = File::create(filename).unwrap();
     let mut encoder = gif::Encoder::new(
         &mut image,

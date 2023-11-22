@@ -31,29 +31,29 @@ pub struct AvatarBuilder {
     pos: CompiledPos,
 }
 
-pub type AvatarDataItem<'a> = Option<BoxFuture<'a, Result<Arc<Vec<Image>>, Error<'a>>>>;
+pub type AvatarDataItem<'a> = BoxFuture<'a, Result<Arc<Vec<Image>>, Error>>;
 
 pub struct AvatarData<'a> {
-    pub from: AvatarDataItem<'a>,
-    pub to: AvatarDataItem<'a>,
-    pub bot: AvatarDataItem<'a>,
-    pub group: AvatarDataItem<'a>,
+    pub from: Option<AvatarDataItem<'a>>,
+    pub to: Option<AvatarDataItem<'a>>,
+    pub bot: Option<AvatarDataItem<'a>>,
+    pub group: Option<AvatarDataItem<'a>>,
     pub random: Vec<AvatarDataItem<'a>>,
 }
 
 
 impl AvatarBuilder {
-    pub fn new<'a>(template: AvatarTemplate) -> Result<AvatarBuilder, Error<'a>> {
+    pub fn new<'a>(template: AvatarTemplate) -> Result<AvatarBuilder, Error> {
         let pos: PosDimension = match &template.pos_type {
             AvatarPosType::ZOOM => match &template.pos {
                 PosDimension::P1D(pos) => PosDimension::P2D(vec![pos.clone()]),
                 PosDimension::P2D(_) => template.pos.clone(),
-                _ => Err(TemplateError(""))?
+                _ => Err(TemplateError(format!("{:?}", template)))?
             },
             AvatarPosType::DEFORM => match &template.pos {
                 PosDimension::P2D(pos) => PosDimension::P3D(vec![pos.clone()]),
                 PosDimension::P3D(_) => template.pos.clone(),
-                _ => Err(TemplateError(""))?
+                _ => Err(TemplateError(format!("{:?}", template)))?
             }
         };
 
@@ -75,7 +75,7 @@ pub struct AvatarBuilderList {
 }
 
 impl AvatarBuilderList {
-    pub fn new<'a>(templates: Vec<AvatarTemplate>) -> Result<AvatarBuilderList, Error<'a>> {
+    pub fn new<'a>(templates: Vec<AvatarTemplate>) -> Result<AvatarBuilderList, Error> {
         let mut types = 0;
         let mut items = Vec::with_capacity(templates.len());
         for avatar in templates {
@@ -92,7 +92,7 @@ impl AvatarBuilderList {
         })
     }
 
-    pub async fn build<'a>(&'a self, data: AvatarData<'a>) -> Result<Vec<AvatarModel<'a>>, Error<'a>> {
+    pub async fn build<'a>(&'a self, data: AvatarData<'a>) -> Result<Vec<AvatarModel<'a>>, Error> {
         // if self.types & if data.from.is_none() { 0 } else { FROM } == 0
         //     && self.types & if data.to.is_none() { 0 } else { TO } == 0
         //     && self.types & if data.bot.is_none() { 0 } else { BOT } == 0
@@ -123,21 +123,24 @@ fn build_future(types: usize, data: AvatarData)
     let mut future_vec = Vec::with_capacity(5);
     let mut extra_vec: Vec<usize> = Vec::with_capacity(5);
     if types & FROM != 0 {
-        future_vec.push(data.from.ok_or_else(|| MissingDataError("Missing FROM data"))?);
+        future_vec.push(data.from.ok_or_else(|| MissingDataError("Missing FROM data".to_string()))?);
         extra_vec.push(FROM);
     } else if types & TO != 0 {
-        future_vec.push(data.to.ok_or_else(|| MissingDataError("Missing TO data"))?);
+        future_vec.push(data.to.ok_or_else(|| MissingDataError("Missing TO data".to_string()))?);
         extra_vec.push(TO);
     } else if types & GROUP != 0 {
-        future_vec.push(data.group.ok_or_else(|| MissingDataError("Missing GROUP data"))?);
+        future_vec.push(data.group.ok_or_else(|| MissingDataError("Missing GROUP data".to_string()))?);
         extra_vec.push(GROUP);
     } else if types & BOT != 0 {
-        future_vec.push(data.bot.ok_or_else(|| MissingDataError("Missing BOT data"))?);
+        future_vec.push(data.bot.ok_or_else(|| MissingDataError("Missing BOT data".to_string()))?);
         extra_vec.push(BOT);
     } else if types & RANDOM != 0 {
         let mut vec = data.random;
+        if vec.is_empty() {
+            return Err(MissingDataError("Missing RANDOM data".to_string()))
+        }
         let index = rand::thread_rng().gen_range(0..vec.len());
-        future_vec.push(vec.remove(index).ok_or_else(|| MissingDataError("Missing RANDOM data"))?);
+        future_vec.push(vec.remove(index));
         extra_vec.push(RANDOM);
     }
     Ok((future_vec, extra_vec))
