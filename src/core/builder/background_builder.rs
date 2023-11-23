@@ -1,4 +1,4 @@
-use skia_safe::{AlphaType, Color, ColorTable, ColorType, Image, ImageInfo, Surface};
+use skia_safe::{AlphaType, Color, ColorType, Image, ImageInfo, Surface};
 
 use crate::core::builder::pos_builder::{compile_size, CompiledSize, eval_background_size};
 use crate::core::errors::Error;
@@ -20,7 +20,7 @@ impl BackgroundBuilder {
     ) -> Result<BackgroundBuilder, Error> {
         match template {
             Some(template) => {
-                if let Ok(color_u32) = u32::from_str_radix(&template.color, 16) {
+                if let Ok(color_u32) = u32::from_str_radix(&template.color[1..], 16) {
                     Ok(BackgroundBuilder {
                         template: Some((
                             compile_size(&template.size),

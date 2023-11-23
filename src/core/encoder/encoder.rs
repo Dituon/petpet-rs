@@ -1,13 +1,12 @@
 use std::time::Instant;
-use axum::body::StreamBody;
+
 use gif::{Frame, Repeat};
 use once_cell::sync::Lazy;
 use rayon::prelude::*;
-use skia_safe::{ColorTable, EncodedImageFormat, Image};
+use skia_safe::{EncodedImageFormat, Image};
+
 use crate::core::errors::Error;
 use crate::core::errors::Error::ImageEncodeError;
-use futures_util::stream::{self, Stream};
-use tokio::io::{BufStream, BufWriter};
 
 pub static IMAGE_ENCODER: Lazy<ImageEncoder> = Lazy::new(|| {
     ImageEncoder::new()
@@ -74,7 +73,7 @@ impl ImageEncoder {
                     self.gif_quality,
                 );
                 println!("from_pixel: {:?}", time.elapsed());
-                frame.delay = 65;
+                frame.delay = 25;
                 let time = Instant::now();
                 frame.make_lzw_pre_encoded();
                 println!("make_lzw: {:?}", time.elapsed());

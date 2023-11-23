@@ -35,6 +35,7 @@ impl PetpetService {
                     FileError(format!("Can not get path name: {:?}", path_buf))
                 )?.to_string();
                 let data_path_str = format!("{}/data.json", root_path_str);
+                println!("{}", data_path_str);
                 let template: PetpetTemplate = if Path::new(&data_path_str).exists() {
                     let str = std::fs::read_to_string(data_path_str)?;
                     serde_json::from_str(&str)?

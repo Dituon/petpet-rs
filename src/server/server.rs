@@ -22,7 +22,9 @@ impl PetpetServer {
     pub fn new() -> Result<Self, Error> {
         Ok(PetpetServer {
             addr: SocketAddr::from(([127, 0, 0, 1], 3000)),
-            service: PetpetService::with_paths(&vec!["./data"])?,
+            service: PetpetService::with_paths(&vec![
+                "./data"
+            ])?,
         })
     }
 
@@ -52,10 +54,9 @@ async fn generate(
     let builder = logic.service.get_builder(&payload.key).unwrap();
     let start_time0 = Instant::now();
     let images = builder.build(avatar_data).await.unwrap();
-    println!("{:?}", start_time0.elapsed());
+    println!("draw: {:?}", start_time0.elapsed());
     let start_time1 = Instant::now();
     let blob = IMAGE_ENCODER.encode(&images).unwrap();
-    println!("{:?}", start_time1.elapsed());
+    println!("encode: {:?}", start_time1.elapsed());
     (StatusCode::OK, [(header::CONTENT_TYPE, "image/png")], blob)
 }
-

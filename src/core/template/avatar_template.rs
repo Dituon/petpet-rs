@@ -50,10 +50,10 @@ pub struct AvatarTemplate {
     pub pos: PosDimension,
     #[serde(rename = "posType", default = "pos_type_default")]
     pub pos_type: AvatarPosType,
-    #[serde(default = "crop_default")]
-    pub crop: Option<(f64, f64)>,
-    #[serde(rename = "cropType", default = "crop_type_default")]
-    pub crop_type: AvatarCropType,
+    // #[serde(default = "crop_default")]
+    // pub crop: Option<(f64, f64)>,
+    // #[serde(rename = "cropType", default = "crop_type_default")]
+    // pub crop_type: AvatarCropType,
     #[serde(default = "style_default")]
     pub style: Vec<AvatarStyle>,
     #[serde(default = "fit_default")]

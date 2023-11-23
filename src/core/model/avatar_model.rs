@@ -16,8 +16,7 @@ pub struct AvatarModel<'a> {
     images: Arc<Vec<Image>>,
     pub pos: Cow<'a, CompiledNumberPosDimension>,
 
-    // src_rect: Rect,
-    // dst_rect: Rect,
+    // src_rect: Option<Rect>,
 }
 
 pub trait Drawable {
@@ -72,7 +71,7 @@ impl<'a> AvatarModel<'a> {
                 self.draw_zoom(canvas, img, p2d);
             }
             CompiledNumberPosDimension::P3D(p3d) => {
-                let img = &self.images.as_ref()[index];
+                let img = self.get_image(index);
                 let m = Matrix::from_poly_to_poly(&[
                     Point::new(0.0, 0.0),
                     Point::new(0.0, img.height() as f32),
@@ -156,4 +155,17 @@ impl<'a> AvatarModel<'a> {
             canvas.restore();
         }
     }
+
+    // fn crop_to_circle(image: &Image) -> Image {
+    //     let mut surface = skia_safe::surfaces::raster_n32_premul((image.width(), image.height())).unwrap();
+    //     let canvas = surface.canvas();
+    //     let mut paint = Paint::new(Color::WHITE, None);
+    //     paint.set_anti_alias(true);
+    //     let mut clip_path = Path::new();
+    //     clip_path.add_circle(Point::new(image.width() as f32 / 2.0, image.height() as f32 / 2.0), image.width() as f32 / 2.0, None);
+    //     canvas.clip_path(&clip_path, None, Some(Paint::default()));
+    //     let dest_rect = Rect::from_point_and_size(Point::new(0.0, 0.0), surface.dimensions());
+    //     canvas.draw_image_rect(image, None, dest_rect, &paint);
+    //     surface.image_snapshot()
+    // }
 }
