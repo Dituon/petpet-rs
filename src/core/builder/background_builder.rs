@@ -1,3 +1,4 @@
+use alloc::borrow::Cow;
 use skia_safe::{AlphaType, Color, ColorType, Image, ImageInfo, Surface};
 
 use crate::core::builder::pos_builder::{compile_size, CompiledSize, eval_background_size};
@@ -7,7 +8,7 @@ use crate::core::loader::image_loader::load_cached_background;
 use crate::core::template::background_template::BackgroundTemplate;
 
 pub struct BackgroundBuilder {
-    pub template: Option<(CompiledSize, Color)>,
+    pub info: Option<(CompiledSize, Color, u16)>,
     pub path: Option<String>,
 }
 
@@ -22,9 +23,10 @@ impl BackgroundBuilder {
             Some(template) => {
                 if let Ok(color_u32) = u32::from_str_radix(&template.color[1..], 16) {
                     Ok(BackgroundBuilder {
-                        template: Some((
+                        info: Some((
                             compile_size(&template.size),
-                            Color::from(color_u32)
+                            Color::from(color_u32),
+                            template.length
                         )),
                         path,
                     })
@@ -37,7 +39,7 @@ impl BackgroundBuilder {
             None => {
                 if let Some(_) = path {
                     Ok(BackgroundBuilder {
-                        template: None,
+                        info: None,
                         path,
                     })
                 } else {
@@ -47,17 +49,16 @@ impl BackgroundBuilder {
         }
     }
 
-    pub fn create_background(&self, avatar_sizes: Vec<OriginSize>) -> Result<(Surface, &Vec<Image>), Error> {
-        let images = match &self.path {
+    pub fn create_background(&self, avatar_sizes: Vec<OriginSize>) -> Result<(Surface, Cow<Vec<Image>>), Error> {
+        let file_images = match &self.path {
             Some(path) => {
                 load_cached_background(path)?
             }
             None => &EMPTY_VEC
         };
-
-        let size = match &self.template {
-            Some((size, _color)) => eval_background_size(size, avatar_sizes)?,
-            None => (images[0].width(), images[0].height())
+        let size = match &self.info {
+            Some((size, _, _)) => eval_background_size(size, avatar_sizes)?,
+            None => (file_images[0].width(), file_images[0].height())
         };
         let info = ImageInfo::new(
             size,
@@ -67,17 +68,24 @@ impl BackgroundBuilder {
         );
 
         //TODO: cache surface
-        let surface = match &self.template {
-            Some((_, _color)) => {
-                //TODO: color
-                skia_safe::surfaces::raster(&info, 0, None).unwrap()
+        Ok(match &self.info {
+            Some((_, color, len)) => {
+                let mut s = skia_safe::surfaces::raster(&info, 0, None).unwrap();
+                let mut images = vec![];
+                if self.path.is_none() {
+                    for _ in 0..*len {
+                        s.canvas().clear(*color);
+                        images.push(s.image_snapshot());
+                    }
+                    return Ok((s, Cow::Owned(images)))
+                }
+                (s, Cow::Borrowed(file_images))
             }
-            None => {
-                skia_safe::surfaces::raster(&info, 0, None).unwrap()
-            }
-        };
-
-        Ok((surface, images))
+            None => (
+                skia_safe::surfaces::raster(&info, 0, None).unwrap(),
+                Cow::Borrowed(file_images)
+            )
+        })
     }
 }
 

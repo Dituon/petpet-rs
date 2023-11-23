@@ -40,23 +40,21 @@ impl<'a> AvatarModel<'a> {
             )
         } else { Arc::clone(&images) };
 
-        println!("{:#?}", template);
-
         let src_rect = match template.crop_type {
             AvatarCropType::NONE => None,
             AvatarCropType::PIXEL => {
-                if let CropPos::XYWH((x, y, w, h)) = template.crop.as_ref().unwrap() {
-                    Some(Rect::from_xywh(*x, *y, *w, *h))
+                if let CropPos::XYXY((x1, y1, x2, y2)) = template.crop.as_ref().unwrap() {
+                    Some(Rect::from_xywh(*x1, *y1, x2 - x1, y2 - y1))
                 } else { None }
             }
             AvatarCropType::PERCENT => {
-                if let CropPos::XYWH((x, y, w, h)) = template.crop.as_ref().unwrap() {
+                if let CropPos::XYXY((x1, y1, x2, y2)) = template.crop.as_ref().unwrap() {
                     let (sw, sh) = Self::get_image_size(&images[0]);
-                    let x = (x / 100.0) * sw as f32;
-                    let y = (y / 100.0) * sh as f32;
-                    let w = (w / 100.0) * sw as f32;
-                    let h = (h / 100.0) * sh as f32;
-                    Some(Rect::from_xywh(x, y, w, h))
+                    let x1 = (x1 / 100.0) * sw as f32;
+                    let y1 = (y1 / 100.0) * sh as f32;
+                    let x2 = (x2 / 100.0) * sw as f32;
+                    let y2 = (y2 / 100.0) * sh as f32;
+                    Some(Rect::from_xywh(x1, y1, x2 - x1, y2 - y1))
                 } else { None }
             }
         };
@@ -85,7 +83,11 @@ impl<'a> AvatarModel<'a> {
     }
 
     pub fn get_size(&self) -> OriginSize {
-        Self::get_image_size(&self.images[0])
+        if let Some(rect) = self.src_rect {
+            (rect.width() as i32, rect.height() as i32)
+        } else {
+            Self::get_image_size(&self.images[0])
+        }
     }
 
     fn get_image_size(image: &Image) -> OriginSize {
@@ -97,10 +99,9 @@ impl<'a> AvatarModel<'a> {
     }
 
     pub fn draw(&self, canvas: &Canvas, index: usize) -> Result<(), Error> {
-        println!("{}", index);
         match &self.pos.as_ref() {
             CompiledNumberPosDimension::P2D(p2d) => {
-                let p2d = p2d[index];
+                let p2d = p2d[index % p2d.len()];
                 let img = self.get_image(index);
                 self.draw_zoom(canvas, img, p2d);
             }
@@ -111,8 +112,8 @@ impl<'a> AvatarModel<'a> {
                     Point::new(0.0, img.height() as f32),
                     Point::new(img.width() as f32, img.height() as f32),
                     Point::new(img.width() as f32, 0.0),
-                ], &p3d[index]).ok_or(TemplateError(
-                    format!("can not build Matrix, {:?}", &p3d[index])
+                ], &p3d[index % p3d.len()]).ok_or(TemplateError(
+                    format!("can not build Matrix, {:?}", &p3d[index % p3d.len()])
                 ))?;
                 canvas.set_matrix(&(M44::from(m)));
                 canvas.draw_image(img, (0, 0), None);

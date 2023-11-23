@@ -47,8 +47,9 @@
 
 **Background**
 
-- [x] size
-- [ ] color
+- [x] `Background.size`
+- [x] `Background.color`
+- [x] `Background.length`
 
 #### Core
 

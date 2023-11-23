@@ -103,7 +103,7 @@ pub enum PosDimension {
 #[serde(untagged)]
 pub enum CropPos {
     WH((f32, f32)),
-    XYWH((f32, f32, f32, f32)),
+    XYXY((f32, f32, f32, f32)),
 }
 
 fn pos_type_default() -> AvatarPosType {

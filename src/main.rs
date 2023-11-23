@@ -49,7 +49,6 @@ pub fn save_images_to_file(images: &Vec<Image>, filename: &str) {
 }
 
 fn read_file_to_string(file_path: &str) -> String {
-    println!("{}", file_path);
     let mut file = File::open(file_path).unwrap();
 
     let mut content = String::new();

@@ -63,7 +63,7 @@ impl AvatarBuilder {
             AvatarCropType::NONE => None,
             _ => {
                 if let CropPos::WH(wh) = template.crop.as_ref().ok_or(TemplateError("Can not find crop pos".to_string()))? {
-                    Some(CropPos::XYWH((0.0, 0.0, wh.0, wh.1)))
+                    Some(CropPos::XYXY((0.0, 0.0, wh.0, wh.1)))
                 } else { template.crop }
             }
         };
