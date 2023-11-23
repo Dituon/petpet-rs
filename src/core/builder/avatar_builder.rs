@@ -8,7 +8,7 @@ use crate::core::builder::pos_builder::{compile_pos, CompiledPos};
 use crate::core::errors::Error;
 use crate::core::errors::Error::{MissingDataError, TemplateError};
 use crate::core::model::avatar_model::AvatarModel;
-use crate::core::template::avatar_template::{AvatarPosType, AvatarTemplate, AvatarType, PosDimension};
+use crate::core::template::avatar_template::{AvatarCropType, AvatarPosType, AvatarTemplate, AvatarType, CropPos, PosDimension};
 
 pub static FROM: usize = 0b00001;
 pub static TO: usize = 0b00010;
@@ -43,7 +43,7 @@ pub struct AvatarData<'a> {
 
 
 impl AvatarBuilder {
-    pub fn new<'a>(template: AvatarTemplate) -> Result<AvatarBuilder, Error> {
+    pub fn new<'a>(mut template: AvatarTemplate) -> Result<AvatarBuilder, Error> {
         let pos: PosDimension = match &template.pos_type {
             AvatarPosType::ZOOM => match &template.pos {
                 PosDimension::P1D(pos) => PosDimension::P2D(vec![pos.clone()]),
@@ -58,6 +58,15 @@ impl AvatarBuilder {
         };
 
         let pos = compile_pos(pos)?;
+
+        template.crop = match &template.crop_type {
+            AvatarCropType::NONE => None,
+            _ => {
+                if let CropPos::WH(wh) = template.crop.as_ref().ok_or(TemplateError("Can not find crop pos".to_string()))? {
+                    Some(CropPos::XYWH((0.0, 0.0, wh.0, wh.1)))
+                } else { template.crop }
+            }
+        };
 
         Ok(AvatarBuilder {
             template,

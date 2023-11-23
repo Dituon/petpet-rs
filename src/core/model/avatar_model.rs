@@ -10,14 +10,14 @@ use crate::core::builder::background_builder::OriginSize;
 use crate::core::builder::pos_builder::{CompiledNumberPosDimension, CompiledPos, eval_size, XYWH};
 use crate::core::errors::Error;
 use crate::core::errors::Error::{AvatarLoadError, TemplateError};
-use crate::core::template::avatar_template::{AvatarFit, AvatarTemplate, TransformOrigin};
+use crate::core::template::avatar_template::{AvatarCropType, AvatarFit, AvatarTemplate, CropPos, TransformOrigin};
 
 pub struct AvatarModel<'a> {
     pub template: &'a AvatarTemplate,
     images: Arc<Vec<Image>>,
     pub pos: Cow<'a, CompiledNumberPosDimension>,
 
-    // src_rect: Option<Rect>,
+    src_rect: Option<Rect>,
 }
 
 pub trait Drawable {
@@ -40,6 +40,27 @@ impl<'a> AvatarModel<'a> {
             )
         } else { Arc::clone(&images) };
 
+        println!("{:#?}", template);
+
+        let src_rect = match template.crop_type {
+            AvatarCropType::NONE => None,
+            AvatarCropType::PIXEL => {
+                if let CropPos::XYWH((x, y, w, h)) = template.crop.as_ref().unwrap() {
+                    Some(Rect::from_xywh(*x, *y, *w, *h))
+                } else { None }
+            }
+            AvatarCropType::PERCENT => {
+                if let CropPos::XYWH((x, y, w, h)) = template.crop.as_ref().unwrap() {
+                    let (sw, sh) = Self::get_image_size(&images[0]);
+                    let x = (x / 100.0) * sw as f32;
+                    let y = (y / 100.0) * sh as f32;
+                    let w = (w / 100.0) * sw as f32;
+                    let h = (h / 100.0) * sh as f32;
+                    Some(Rect::from_xywh(x, y, w, h))
+                } else { None }
+            }
+        };
+
         if !expr_pos.is_empty() {
             let size = Self::get_image_size(&images[0]);
             let pos = eval_size((num_pos, expr_pos), size)?;
@@ -47,14 +68,20 @@ impl<'a> AvatarModel<'a> {
                 template,
                 images: built_images,
                 pos: Cow::Owned(pos),
-            });
+                src_rect,
+            })
         }
 
         Ok(AvatarModel {
             template,
             images: built_images,
             pos: Cow::Borrowed(num_pos),
+            src_rect,
         })
+    }
+
+    pub fn get_src_rect(&self) -> Option<(&Rect, SrcRectConstraint)> {
+        self.src_rect.as_ref().map(|rect| (rect, SrcRectConstraint::Fast))
     }
 
     pub fn get_size(&self) -> OriginSize {
@@ -111,7 +138,7 @@ impl<'a> AvatarModel<'a> {
         match self.template.fit {
             AvatarFit::FILL => {
                 let rect = Rect::from_xywh(x as f32, y as f32, w as f32, h as f32);
-                canvas.draw_image_rect(img, None, rect, &paint);
+                canvas.draw_image_rect(img, self.get_src_rect(), rect, &paint);
             }
             AvatarFit::CONTAIN => {
                 let iw = img.width() as f32;
@@ -124,7 +151,7 @@ impl<'a> AvatarModel<'a> {
                 let offset_y = y as f32 + (h as f32 - scaled_height) / 2.0;
 
                 let rect = Rect::from_xywh(offset_x, offset_y, scaled_width, scaled_height);
-                canvas.draw_image_rect(img, None, rect, &paint);
+                canvas.draw_image_rect(img, self.get_src_rect(), rect, &paint);
             }
             AvatarFit::COVER => {
                 let iw = img.width() as f32;

@@ -29,8 +29,8 @@
 - [x] `Avatar.pos`
 - [x] `Avatar.posType`
 
-- [ ] `Avatar.crop`
-- [ ] `Avatar.cropType`
+- [x] `Avatar.crop`
+- [x] `Avatar.cropType`
 
 - [ ] `Avatar.style`
 - [ ] `Avatar.filter`

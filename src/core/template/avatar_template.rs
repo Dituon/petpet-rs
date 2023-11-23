@@ -43,17 +43,17 @@ pub enum AvatarStyle {
     BINARIZATION,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AvatarTemplate {
     #[serde(rename = "type")]
     pub _type: AvatarType,
     pub pos: PosDimension,
     #[serde(rename = "posType", default = "pos_type_default")]
     pub pos_type: AvatarPosType,
-    // #[serde(default = "crop_default")]
-    // pub crop: Option<(f64, f64)>,
-    // #[serde(rename = "cropType", default = "crop_type_default")]
-    // pub crop_type: AvatarCropType,
+    #[serde(default = "crop_default")]
+    pub crop: Option<CropPos>,
+    #[serde(rename = "cropType", default = "crop_type_default")]
+    pub crop_type: AvatarCropType,
     #[serde(default = "style_default")]
     pub style: Vec<AvatarStyle>,
     #[serde(default = "fit_default")]
@@ -99,11 +99,18 @@ pub enum PosDimension {
     P3D(P3D),
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(untagged)]
+pub enum CropPos {
+    WH((f32, f32)),
+    XYWH((f32, f32, f32, f32)),
+}
+
 fn pos_type_default() -> AvatarPosType {
     AvatarPosType::ZOOM
 }
 
-fn crop_default() -> Option<(f64, f64)> {
+fn crop_default() -> Option<CropPos> {
     None
 }
 
