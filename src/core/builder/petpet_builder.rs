@@ -40,7 +40,7 @@ impl PetpetBuilder {
 
         let avatars = self.avatar_builders.build(avatar_data).await?;
         for avatar in &avatars {
-            if avatar.template.avatar_on_top {
+            if avatar.template.raw.avatar_on_top {
                 top_avatars.push(avatar)
             } else {
                 bottom_avatars.push(avatar)

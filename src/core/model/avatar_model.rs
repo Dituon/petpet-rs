@@ -5,6 +5,7 @@ use std::sync::Arc;
 use rayon::prelude::*;
 use skia_safe::{Canvas, Image, M44, Matrix, Paint, Path, Point, Rect, scalar};
 use skia_safe::canvas::SrcRectConstraint;
+use crate::core::builder::avatar_builder::AvatarBuiltTemplate;
 
 use crate::core::builder::background_builder::OriginSize;
 use crate::core::builder::pos_builder::{CompiledNumberPosDimension, CompiledPos, eval_size, XYWH};
@@ -13,7 +14,7 @@ use crate::core::errors::Error::{AvatarLoadError, TemplateError};
 use crate::core::template::avatar_template::{AvatarCropType, AvatarFit, AvatarTemplate, CropPos, TransformOrigin};
 
 pub struct AvatarModel<'a> {
-    pub template: &'a AvatarTemplate,
+    pub template: &'a AvatarBuiltTemplate,
     images: Arc<Vec<Image>>,
     pub pos: Cow<'a, CompiledNumberPosDimension>,
 
@@ -26,29 +27,29 @@ pub trait Drawable {
 
 impl<'a> AvatarModel<'a> {
     pub fn new(
-        template: &'a AvatarTemplate,
+        template: &'a AvatarBuiltTemplate,
         images: Arc<Vec<Image>>,
-        (num_pos, expr_pos): &'a CompiledPos,
     ) -> Result<AvatarModel<'a>, Error> {
         if images.as_ref().is_empty() {
             return Err(AvatarLoadError("avatars vec is empty".to_string()));
         }
+        let (num_pos, expr_pos) = &template.pos;
 
-        let built_images: Arc<Vec<Image>> = if template.round {
+        let built_images: Arc<Vec<Image>> = if template.raw.round {
             Arc::new(images.par_iter()
                 .map(|img| Self::crop_to_circle(img)).collect()
             )
         } else { Arc::clone(&images) };
 
-        let src_rect = match template.crop_type {
+        let src_rect = match template.raw.crop_type {
             AvatarCropType::NONE => None,
             AvatarCropType::PIXEL => {
-                if let CropPos::XYXY((x1, y1, x2, y2)) = template.crop.as_ref().unwrap() {
+                if let CropPos::XYXY((x1, y1, x2, y2)) = template.raw.crop.as_ref().unwrap() {
                     Some(Rect::from_xywh(*x1, *y1, x2 - x1, y2 - y1))
                 } else { None }
             }
             AvatarCropType::PERCENT => {
-                if let CropPos::XYXY((x1, y1, x2, y2)) = template.crop.as_ref().unwrap() {
+                if let CropPos::XYXY((x1, y1, x2, y2)) = template.raw.crop.as_ref().unwrap() {
                     let (sw, sh) = Self::get_image_size(&images[0]);
                     let x1 = (x1 / 100.0) * sw as f32;
                     let y1 = (y1 / 100.0) * sh as f32;
@@ -125,18 +126,18 @@ impl<'a> AvatarModel<'a> {
 
     fn draw_zoom(&self, canvas: &Canvas, img: &Image, (x, y, w, h): XYWH) {
         let mut paint = Paint::default();
-        paint.set_alpha((self.template.opacity * 255.0) as u8);
+        paint.set_alpha((self.template.raw.opacity * 255.0) as u8);
 
-        let has_angle = self.template.angle % 360.0 != 0.0;
+        let has_angle = self.template.raw.angle % 360.0 != 0.0;
         if has_angle {
             canvas.save();
-            let p = match self.template.origin {
+            let p = match self.template.raw.origin {
                 TransformOrigin::DEFAULT => Point::from((x, y)),
                 TransformOrigin::CENTER => Point::from((x + w / 2, y + h / 2))
             };
-            canvas.rotate(self.template.angle as scalar, Some(p));
+            canvas.rotate(self.template.raw.angle as scalar, Some(p));
         }
-        match self.template.fit {
+        match self.template.raw.fit {
             AvatarFit::FILL => {
                 let rect = Rect::from_xywh(x as f32, y as f32, w as f32, h as f32);
                 canvas.draw_image_rect(img, self.get_src_rect(), rect, &paint);

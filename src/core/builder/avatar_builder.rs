@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use futures::future::{BoxFuture, join_all};
 use rand::Rng;
-use skia_safe::Image;
+use skia_safe::{Image, Matrix};
 
 use crate::core::builder::pos_builder::{compile_pos, CompiledPos};
 use crate::core::errors::Error;
@@ -26,9 +26,14 @@ pub fn by_type(t: &AvatarType) -> usize {
     }
 }
 
+pub struct AvatarBuiltTemplate {
+    pub raw: AvatarTemplate,
+    pub pos: CompiledPos,
+    pub matrix: Matrix,
+}
+
 pub struct AvatarBuilder {
-    template: AvatarTemplate,
-    pos: CompiledPos,
+    built_template: AvatarBuiltTemplate,
 }
 
 pub type AvatarDataItem<'a> = BoxFuture<'a, Result<Arc<Vec<Image>>, Error>>;
@@ -69,12 +74,15 @@ impl AvatarBuilder {
         };
 
         Ok(AvatarBuilder {
-            template,
-            pos,
+            built_template: AvatarBuiltTemplate {
+                raw: template,
+                pos,
+                matrix: Default::default(),
+            },
         })
     }
-    pub fn build<'a>(&'a self, images: Arc<Vec<Image>>) -> Result<AvatarModel<'a>, Error> {
-        AvatarModel::new(&self.template, images, &self.pos)
+    pub fn build(&self, images: Arc<Vec<Image>>) -> Result<AvatarModel, Error> {
+        AvatarModel::new(&self.built_template, images)
     }
 }
 
@@ -116,7 +124,7 @@ impl AvatarBuilderList {
             let t = types[i];
             let imgs = &res.remove(i)?;
             for (_, _, builder) in &self.builders {
-                 if by_type(&builder.template._type) != t {
+                 if by_type(&builder.built_template.raw._type) != t {
                      continue
                  }
                 avatars.push(builder.build(Arc::clone(imgs))?);

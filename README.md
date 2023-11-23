@@ -15,6 +15,7 @@
 - [x] thread pool
 - [ ] cache surface
 - [ ] GPU filter
+- [ ] config file
 
 #### template
 
@@ -61,3 +62,9 @@
 - [ ] get
 - [x] post
 - [ ] form-data
+
+#### Feature
+
+- `Avatar.crop` not working when `Avatar.fit: COVER`
+- size variable not working when `Avatar.posType: DEFORM`
+- Mixing of matrices is inexact
