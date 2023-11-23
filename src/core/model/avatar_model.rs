@@ -2,7 +2,8 @@ use std::borrow::Cow;
 use std::f32;
 use std::sync::Arc;
 
-use skia_safe::{Canvas, Image, M44, Matrix, Paint, Point, Rect, scalar};
+use rayon::prelude::*;
+use skia_safe::{Canvas, Image, M44, Matrix, Paint, Path, Point, Rect, scalar};
 use skia_safe::canvas::SrcRectConstraint;
 
 use crate::core::builder::background_builder::OriginSize;
@@ -30,22 +31,28 @@ impl<'a> AvatarModel<'a> {
         (num_pos, expr_pos): &'a CompiledPos,
     ) -> Result<AvatarModel<'a>, Error> {
         if images.as_ref().is_empty() {
-            return Err(AvatarLoadError("avatars vac is empty".to_string()));
+            return Err(AvatarLoadError("avatars vec is empty".to_string()));
         }
+
+        let built_images: Arc<Vec<Image>> = if template.round {
+            Arc::new(images.par_iter()
+                .map(|img| Self::crop_to_circle(img)).collect()
+            )
+        } else { Arc::clone(&images) };
 
         if !expr_pos.is_empty() {
             let size = Self::get_image_size(&images[0]);
             let pos = eval_size((num_pos, expr_pos), size)?;
             return Ok(AvatarModel {
                 template,
-                images,
+                images: built_images,
                 pos: Cow::Owned(pos),
             });
         }
 
         Ok(AvatarModel {
             template,
-            images,
+            images: built_images,
             pos: Cow::Borrowed(num_pos),
         })
     }
@@ -59,7 +66,7 @@ impl<'a> AvatarModel<'a> {
     }
 
     fn get_image(&self, index: usize) -> &Image {
-        return &self.images.as_ref()[index % self.images.len()]
+        return &self.images.as_ref()[index % self.images.len()];
     }
 
     pub fn draw(&self, canvas: &Canvas, index: usize) -> Result<(), Error> {
@@ -137,17 +144,17 @@ impl<'a> AvatarModel<'a> {
                     offset_x,
                     offset_y,
                     scaled_width,
-                    scaled_height
+                    scaled_height,
                 );
                 let dst_rect = Rect::from_xywh(
                     pdx, pdy,
-                    scaled_width, scaled_height
+                    scaled_width, scaled_height,
                 );
                 canvas.draw_image_rect(
                     img,
                     Some((&src_rect, SrcRectConstraint::Strict)),
                     dst_rect,
-                    &paint
+                    &paint,
                 );
             }
         }
@@ -156,16 +163,17 @@ impl<'a> AvatarModel<'a> {
         }
     }
 
-    // fn crop_to_circle(image: &Image) -> Image {
-    //     let mut surface = skia_safe::surfaces::raster_n32_premul((image.width(), image.height())).unwrap();
-    //     let canvas = surface.canvas();
-    //     let mut paint = Paint::new(Color::WHITE, None);
-    //     paint.set_anti_alias(true);
-    //     let mut clip_path = Path::new();
-    //     clip_path.add_circle(Point::new(image.width() as f32 / 2.0, image.height() as f32 / 2.0), image.width() as f32 / 2.0, None);
-    //     canvas.clip_path(&clip_path, None, Some(Paint::default()));
-    //     let dest_rect = Rect::from_point_and_size(Point::new(0.0, 0.0), surface.dimensions());
-    //     canvas.draw_image_rect(image, None, dest_rect, &paint);
-    //     surface.image_snapshot()
-    // }
+    fn crop_to_circle(image: &Image) -> Image {
+        let mut surface = skia_safe::surfaces::raster_n32_premul((image.width(), image.height())).unwrap();
+        let w = surface.width() as f32;
+        let h = surface.height() as f32;
+        let canvas = surface.canvas();
+        let mut clip_path = Path::new();
+        clip_path.add_circle(Point::new(image.width() as f32 / 2.0, image.height() as f32 / 2.0), image.width() as f32 / 2.0, None);
+        canvas.clip_path(&clip_path, None, false);
+
+        let dest_rect = Rect::from_xywh(0.0, 0.0, w, h);
+        canvas.draw_image_rect(image, None, dest_rect, &Paint::default());
+        surface.image_snapshot()
+    }
 }

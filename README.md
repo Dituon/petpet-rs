@@ -36,7 +36,7 @@
 - [ ] `Avatar.filter`
 - [x] `Avatar.fit`
 
-- [ ] `Avatar.round`
+- [x] `Avatar.round`
 - [x] `Avatar.rotate`
 - [x] `Avatar.origin`
 - [x] `Avatar.avatarOnTop`

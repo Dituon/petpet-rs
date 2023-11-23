@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use gif::{Frame, Repeat};
+use gif::{DisposalMethod, Frame, Repeat};
 use once_cell::sync::Lazy;
 use rayon::prelude::*;
 use skia_safe::{EncodedImageFormat, Image};
@@ -72,6 +72,7 @@ impl ImageEncoder {
                     &mut ps,
                     self.gif_quality,
                 );
+                frame.dispose = DisposalMethod::Background;
                 println!("from_pixel: {:?}", time.elapsed());
                 frame.delay = 25;
                 let time = Instant::now();

@@ -8,7 +8,7 @@ use crate::core::errors::Error;
 use crate::core::loader::image_loader::has_image;
 use crate::core::template::petpet_template::PetpetTemplate;
 
-static MULTITHREADED_DRAWING: Lazy<bool> = Lazy::new(|| false);
+pub static MULTITHREADED_DRAWING: Lazy<bool> = Lazy::new(|| true);
 
 pub struct PetpetBuilder {
     pub template: PetpetTemplate,
@@ -73,10 +73,6 @@ impl PetpetBuilder {
             let mut result = Vec::with_capacity(bgs.len());
             for (i, bg) in bgs.iter().enumerate() {
                 let mut canvas = surface.canvas();
-                if i != 0 {
-                    canvas.clear(skia_safe::colors::WHITE);
-                }
-                // println!("canvas {:?}", canvas.image_info());
                 for ba in &bottom_avatars {
                     ba.draw(canvas, i)?;
                 }
