@@ -27,20 +27,30 @@
 
 - [x] `Avatar.type`
 
+
 - [x] `Avatar.pos`
 - [x] `Avatar.posType`
+
 
 - [x] `Avatar.crop`
 - [x] `Avatar.cropType`
 
-- [ ] `Avatar.style`
-- [ ] `Avatar.filter`
+
+- [x] `Avatar.style.MIRROR`
+- [x] `Avatar.style.FLIP`
+- [ ] `Avatar.style.GRAY`
+- [ ] `Avatar.style.BINARIZATION`
+
+
+- [ ] `Avatar.filter.*`
 - [x] `Avatar.fit`
+
 
 - [x] `Avatar.round`
 - [x] `Avatar.rotate`
 - [x] `Avatar.origin`
 - [x] `Avatar.avatarOnTop`
+
 
 - [x] `Avatar.angle`
 - [x] `Avatar.opacity`

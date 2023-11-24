@@ -1,17 +1,18 @@
 use std::borrow::Cow;
 use std::f32;
+use std::ops::Neg;
 use std::sync::Arc;
 
 use rayon::prelude::*;
 use skia_safe::{Canvas, Image, M44, Matrix, Paint, Path, Point, Rect, scalar};
 use skia_safe::canvas::SrcRectConstraint;
-use crate::core::builder::avatar_builder::AvatarBuiltTemplate;
 
+use crate::core::builder::avatar_builder::AvatarBuiltTemplate;
 use crate::core::builder::background_builder::OriginSize;
-use crate::core::builder::pos_builder::{CompiledNumberPosDimension, CompiledPos, eval_size, XYWH};
+use crate::core::builder::pos_builder::{CompiledNumberPosDimension, eval_size, XYWH};
 use crate::core::errors::Error;
 use crate::core::errors::Error::{AvatarLoadError, TemplateError};
-use crate::core::template::avatar_template::{AvatarCropType, AvatarFit, AvatarTemplate, CropPos, TransformOrigin};
+use crate::core::template::avatar_template::{AvatarCropType, AvatarFit, AvatarStyle, CropPos, TransformOrigin};
 
 pub struct AvatarModel<'a> {
     pub template: &'a AvatarBuiltTemplate,
@@ -68,7 +69,7 @@ impl<'a> AvatarModel<'a> {
                 images: built_images,
                 pos: Cow::Owned(pos),
                 src_rect,
-            })
+            });
         }
 
         Ok(AvatarModel {
@@ -124,16 +125,23 @@ impl<'a> AvatarModel<'a> {
         Ok(())
     }
 
-    fn draw_zoom(&self, canvas: &Canvas, img: &Image, (x, y, w, h): XYWH) {
+    fn draw_zoom(
+        &self,
+        canvas: &Canvas,
+        img: &Image,
+        (x, y, w, h): XYWH,
+    ) {
         let mut paint = Paint::default();
         paint.set_alpha((self.template.raw.opacity * 255.0) as u8);
+
+        self.scale_img(canvas, (x, y, w, h));
 
         let has_angle = self.template.raw.angle % 360.0 != 0.0;
         if has_angle {
             canvas.save();
             let p = match self.template.raw.origin {
                 TransformOrigin::DEFAULT => Point::from((x, y)),
-                TransformOrigin::CENTER => Point::from((x + w / 2, y + h / 2))
+                TransformOrigin::CENTER => Point::from((x + w / 2, y + h / 2)),
             };
             canvas.rotate(self.template.raw.angle as scalar, Some(p));
         }
@@ -189,6 +197,27 @@ impl<'a> AvatarModel<'a> {
         }
         if has_angle {
             canvas.restore();
+        }
+        canvas.reset_matrix();
+    }
+
+    fn scale_img(&self, canvas: &Canvas, (x, y, w, h): XYWH) {
+        for style in &self.template.raw.style {
+            match style {
+                AvatarStyle::MIRROR => {
+                    let p = Point::from((w / 2 + x, h / 2 + y));
+                    canvas.translate(p);
+                    canvas.scale((-1.0, 1.0));
+                    canvas.translate(p.neg());
+                }
+                AvatarStyle::FLIP => {
+                    let p = Point::from((w / 2 + x, h / 2 + y));
+                    canvas.translate(p);
+                    canvas.scale((1.0, -1.0));
+                    canvas.translate(p.neg());
+                }
+                _ => {}
+            }
         }
     }
 

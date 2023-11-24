@@ -1,14 +1,15 @@
+use std::ops::Neg;
 use std::sync::Arc;
 
 use futures::future::{BoxFuture, join_all};
 use rand::Rng;
-use skia_safe::{Image, Matrix};
+use skia_safe::{Image, Matrix, Point};
 
 use crate::core::builder::pos_builder::{compile_pos, CompiledPos};
 use crate::core::errors::Error;
 use crate::core::errors::Error::{MissingDataError, TemplateError};
 use crate::core::model::avatar_model::AvatarModel;
-use crate::core::template::avatar_template::{AvatarCropType, AvatarPosType, AvatarTemplate, AvatarType, CropPos, PosDimension};
+use crate::core::template::avatar_template::{AvatarCropType, AvatarPosType, AvatarStyle, AvatarTemplate, AvatarType, CropPos, PosDimension};
 
 pub static FROM: usize = 0b00001;
 pub static TO: usize = 0b00010;
@@ -73,14 +74,45 @@ impl AvatarBuilder {
             }
         };
 
+        let matrix = Self::compile_matrix(&template);
+
         Ok(AvatarBuilder {
             built_template: AvatarBuiltTemplate {
                 raw: template,
                 pos,
-                matrix: Default::default(),
+                matrix,
             },
         })
     }
+
+    fn compile_matrix(template: &AvatarTemplate) -> Matrix {
+        let mut m = Matrix::default();
+        // for style in &template.style {
+        //     match style {
+        //         AvatarStyle::MIRROR => {
+        //             let p = Point::new(
+        //                 w as f32 / 2.0 + x as f32,
+        //                 h as f32 / 2.0 + y as f32
+        //             );
+        //             m.set_translate(p);
+        //             m.set_scale_x(-1.0);
+        //             m.set_translate(p.neg());
+        //         }
+        //         AvatarStyle::FLIP => {
+        //             let p = Point::new(
+        //                 w as f32 / 2.0 + x as f32,
+        //                 h as f32 / 2.0 + y as f32
+        //             );
+        //             m.set_translate(p);
+        //             m.set_scale_y(-1.0);
+        //             m.set_translate(p.neg());
+        //         }
+        //         _ => {}
+        //     }
+        // }
+        m
+    }
+
     pub fn build(&self, images: Arc<Vec<Image>>) -> Result<AvatarModel, Error> {
         AvatarModel::new(&self.built_template, images)
     }
@@ -124,9 +156,9 @@ impl AvatarBuilderList {
             let t = types[i];
             let imgs = &res.remove(i)?;
             for (_, _, builder) in &self.builders {
-                 if by_type(&builder.built_template.raw._type) != t {
-                     continue
-                 }
+                if by_type(&builder.built_template.raw._type) != t {
+                    continue;
+                }
                 avatars.push(builder.build(Arc::clone(imgs))?);
             }
         }
@@ -154,7 +186,7 @@ fn build_future(types: usize, data: AvatarData)
     } else if types & RANDOM != 0 {
         let mut vec = data.random;
         if vec.is_empty() {
-            return Err(MissingDataError("Missing RANDOM data".to_string()))
+            return Err(MissingDataError("Missing RANDOM data".to_string()));
         }
         let index = rand::thread_rng().gen_range(0..vec.len());
         future_vec.push(vec.remove(index));
