@@ -5,6 +5,7 @@ use crate::core::filters::binarize::binarize_shader;
 use crate::core::filters::bulge::bulge_shader;
 use crate::core::filters::gray::gray_shader;
 use crate::core::filters::pinch::pinch_shader;
+use crate::core::filters::swim::swim_shader;
 use crate::core::filters::swirl::swirl_shader;
 use crate::core::template::filter_template::{AvatarFilter, UniformsBuilder};
 
@@ -32,7 +33,10 @@ pub fn build_style(image: &Image, filters: &Vec<AvatarFilter>, index: usize) -> 
                 },
                 Some(UniformsBuilder::from(t))
             ),
-            // AvatarFilter::SWIM(_) => {}
+            AvatarFilter::SWIM(t) => (
+                swim_shader(),
+                Some(UniformsBuilder::from(t))
+            ),
             // AvatarFilter::BLUR(_) => {}
             // AvatarFilter::CONTRAST(_) => {}
             // AvatarFilter::HSB(_) => {}

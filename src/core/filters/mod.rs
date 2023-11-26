@@ -4,3 +4,4 @@ mod binarize;
 mod bulge;
 mod pinch;
 mod swirl;
+mod swim;
