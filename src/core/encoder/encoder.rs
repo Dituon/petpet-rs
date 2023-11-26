@@ -28,11 +28,11 @@ impl ImageEncoder {
         }
     }
 
-    pub fn encode(&self, images: &Vec<Image>) -> Result<Vec<u8>, Error> {
+    pub fn encode(&self, images: &Vec<Image>, delay: u16) -> Result<Vec<u8>, Error> {
         if images.len() == 1 {
             self.encode_image(&images[0])
         } else {
-            self.encode_images(images)
+            self.encode_images(images, delay)
         }
     }
 
@@ -47,7 +47,7 @@ impl ImageEncoder {
         Ok(data.as_bytes().to_owned())
     }
 
-    pub fn encode_images(&self, images: &Vec<Image>) -> Result<Vec<u8>, Error> {
+    pub fn encode_images(&self, images: &Vec<Image>, delay: u16) -> Result<Vec<u8>, Error> {
         let mut bytes = Vec::with_capacity(65536);
         {
             let mut encoder = gif::Encoder::new(
@@ -74,7 +74,7 @@ impl ImageEncoder {
                 );
                 frame.dispose = DisposalMethod::Background;
                 println!("from_pixel: {:?}", time.elapsed());
-                frame.delay = 25;
+                frame.delay = delay;
                 let time = Instant::now();
                 frame.make_lzw_pre_encoded();
                 println!("make_lzw: {:?}", time.elapsed());

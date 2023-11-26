@@ -43,6 +43,7 @@ impl Requester {
             println!("download: {:?}", time.elapsed());
             let data = Data::new_copy(blob.as_ref());
             let mut codec = Codec::from_data(data).unwrap();
+            let mut delay: u16 = 6;
             let info = ImageInfo::new(
                 codec.dimensions(),
                 ColorType::RGBA8888,
@@ -52,7 +53,13 @@ impl Requester {
             let imgs = match codec.encoded_format() {
                 EncodedImageFormat::GIF => {
                     let mut v = Vec::with_capacity(codec.get_frame_count());
+                    let mut count = 0;
                     for i in 0..codec.get_frame_count() {
+                        let frame_info = codec.get_frame_info(i);
+                        if frame_info.is_some() {
+                            delay += frame_info.unwrap().duration as u16;
+                            count += 1;
+                        }
                         v.push(codec.get_image(info.clone(), &Options {
                             zero_initialized: ZeroInitialized::Yes,
                             subset: None,
@@ -60,27 +67,15 @@ impl Requester {
                             prior_frame: None,
                         })?)
                     }
+                    delay /= count;
                     v
                 }
                 _ => {
                     vec![codec.get_image(info, None)?]
                 }
-                // EncodedImageFormat::BMP => {}
-                // EncodedImageFormat::ICO => {}
-                // EncodedImageFormat::JPEG => {}
-                // EncodedImageFormat::PNG => {}
-                // EncodedImageFormat::WBMP => {}
-                // EncodedImageFormat::WEBP => {}
-                // EncodedImageFormat::PKM => {}
-                // EncodedImageFormat::KTX => {}
-                // EncodedImageFormat::ASTC => {}
-                // EncodedImageFormat::DNG => {}
-                // EncodedImageFormat::HEIF => {}
-                // EncodedImageFormat::AVIF => {}
-                // EncodedImageFormat::JPEGXL => {}
             };
 
-            Ok(Arc::new(imgs))
+            Ok((Arc::new(imgs), delay))
         })
     }
 }

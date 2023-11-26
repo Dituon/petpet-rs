@@ -2,7 +2,7 @@ use once_cell::sync::Lazy;
 use rayon::prelude::*;
 use skia_safe::Image;
 
-use crate::core::builder::avatar_builder::{AvatarBuilderList, AvatarData};
+use crate::core::builder::avatar_builder::{AvatarBuilderList, AvatarData, AvatarFrames};
 use crate::core::builder::background_builder::BackgroundBuilder;
 use crate::core::errors::Error;
 use crate::core::loader::image_loader::has_image;
@@ -37,10 +37,11 @@ impl PetpetBuilder {
         })
     }
 
-    pub async fn build<'a>(&'a self, avatar_data: AvatarData<'a>) -> Result<Vec<Image>, Error> {
-        let mut avatar_size = Vec::with_capacity(self.template.avatar.len());
-        let mut top_avatars = Vec::with_capacity(self.template.avatar.len());
-        let mut bottom_avatars = Vec::with_capacity(self.template.avatar.len());
+    pub async fn build<'a>(&'a self, avatar_data: AvatarData<'a>) -> Result<(Vec<Image>, u16), Error> {
+        let a_count = self.template.avatar.len();
+        let mut avatar_size = Vec::with_capacity(a_count);
+        let mut top_avatars = Vec::with_capacity(a_count);
+        let mut bottom_avatars = Vec::with_capacity(a_count);
 
         let avatars = self.avatar_builders.build(avatar_data).await?;
         for avatar in &avatars {
@@ -53,6 +54,16 @@ impl PetpetBuilder {
         }
 
         let (mut surface, bgs) = self.background_builder.create_background(avatar_size)?;
+
+        let t_delay = if self.background_builder.path.is_some() {
+            self.template.delay / 10
+        } else {
+            let mut d = 0;
+            for a in &avatars {
+                d += a.delay;
+            }
+            d / a_count as u16 / 10
+        };
 
         if MULTITHREADED_DRAWING.to_owned() {
             let info = surface.image_info();
@@ -72,7 +83,7 @@ impl PetpetBuilder {
                 }
                 temp_surface.image_snapshot()
             }).collect();
-            Ok(arrs)
+            Ok((arrs, t_delay))
         } else {
             let mut result = Vec::with_capacity(bgs.len());
             for (i, bg) in bgs.iter().enumerate() {
@@ -86,7 +97,7 @@ impl PetpetBuilder {
                 }
                 result.push(surface.image_snapshot());
             }
-            Ok(result)
+            Ok((result, t_delay))
         }
     }
 

@@ -38,7 +38,8 @@ pub struct AvatarBuilder {
     built_template: AvatarBuiltTemplate,
 }
 
-pub type AvatarDataItem<'a> = BoxFuture<'a, Result<Arc<Vec<Image>>, Error>>;
+pub type AvatarFrames = (Arc<Vec<Image>>, u16);
+pub type AvatarDataItem<'a> = BoxFuture<'a, Result<AvatarFrames, Error>>;
 
 pub struct AvatarData<'a> {
     pub from: Option<AvatarDataItem<'a>>,
@@ -112,8 +113,8 @@ impl AvatarBuilder {
         Matrix::default()
     }
 
-    pub fn build(&self, images: Arc<Vec<Image>>) -> Result<AvatarModel, Error> {
-        AvatarModel::new(&self.built_template, images)
+    pub fn build(&self, frames: AvatarFrames) -> Result<AvatarModel, Error> {
+        AvatarModel::new(&self.built_template, frames)
     }
 }
 
@@ -153,12 +154,14 @@ impl AvatarBuilderList {
         let mut avatars = Vec::with_capacity(res.len());
         for i in 0..res.len() {
             let t = types[i];
-            let imgs = &res.remove(i)?;
+            let (imgs, delay) = &res.remove(i)?;
             for (_, _, builder) in &self.builders {
                 if by_type(&builder.built_template.raw._type) != t {
                     continue;
                 }
-                avatars.push(builder.build(Arc::clone(imgs))?);
+                avatars.push(builder.build(
+                    (Arc::clone(imgs), *delay)
+                )?);
             }
         }
 
@@ -167,7 +170,7 @@ impl AvatarBuilderList {
 }
 
 fn build_future(types: usize, data: AvatarData)
-                -> Result<(Vec<BoxFuture<Result<Arc<Vec<Image>>, Error>>>, Vec<usize>), Error> {
+                -> Result<(Vec<BoxFuture<Result<AvatarFrames, Error>>>, Vec<usize>), Error> {
     let mut future_vec = Vec::with_capacity(5);
     let mut extra_vec: Vec<usize> = Vec::with_capacity(5);
     if types & FROM != 0 {

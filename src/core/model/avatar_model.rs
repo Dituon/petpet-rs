@@ -7,7 +7,7 @@ use rayon::prelude::*;
 use skia_safe::{Canvas, Image, M44, Matrix, Paint, Path, Point, Rect, scalar};
 use skia_safe::canvas::SrcRectConstraint;
 
-use crate::core::builder::avatar_builder::AvatarBuiltTemplate;
+use crate::core::builder::avatar_builder::{AvatarBuiltTemplate, AvatarFrames};
 use crate::core::builder::background_builder::OriginSize;
 use crate::core::builder::pos_builder::{CompiledNumberPosDimension, eval_size, XYWH};
 use crate::core::errors::Error;
@@ -19,6 +19,7 @@ pub struct AvatarModel<'a> {
     pub template: &'a AvatarBuiltTemplate,
     images: Arc<Vec<Image>>,
     pub pos: Cow<'a, CompiledNumberPosDimension>,
+    pub delay: u16,
 
     src_rect: Option<Rect>,
 }
@@ -30,14 +31,14 @@ pub trait Drawable {
 impl<'a> AvatarModel<'a> {
     pub fn new(
         template: &'a AvatarBuiltTemplate,
-        images: Arc<Vec<Image>>,
+        frames: AvatarFrames,
     ) -> Result<AvatarModel<'a>, Error> {
-        if images.as_ref().is_empty() {
+        if frames.0.as_ref().is_empty() {
             return Err(AvatarLoadError("avatars vec is empty".to_string()));
         }
         let (num_pos, expr_pos) = &template.pos;
 
-        let built_images: Arc<Vec<Image>> = Self::pre_build_images(template, images);
+        let built_images: Arc<Vec<Image>> = Self::pre_build_images(template, frames.0);
 
         let src_rect = match template.raw.crop_type {
             AvatarCropType::NONE => None,
@@ -65,6 +66,7 @@ impl<'a> AvatarModel<'a> {
                 template,
                 images: built_images,
                 pos: Cow::Owned(pos),
+                delay: frames.1,
                 src_rect,
             });
         }
@@ -73,6 +75,7 @@ impl<'a> AvatarModel<'a> {
             template,
             images: built_images,
             pos: Cow::Borrowed(num_pos),
+            delay: frames.1,
             src_rect,
         })
     }

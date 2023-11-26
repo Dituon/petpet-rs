@@ -18,7 +18,7 @@ pub struct PetpetTemplate {
     #[serde(default = "background_default")]
     pub background: Option<BackgroundTemplate>,
     #[serde(default = "delay_default")]
-    pub delay: u32,
+    pub delay: u16,
     #[serde(default = "alias_default")]
     pub alias: Vec<String>,
     #[serde(default = "in_random_list_default", rename = "inRandomList")]
@@ -33,7 +33,7 @@ fn background_default() -> Option<BackgroundTemplate> {
     None
 }
 
-fn delay_default() -> u32 {
+fn delay_default() -> u16 {
     65
 }
 
