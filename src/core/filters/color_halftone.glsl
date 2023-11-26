@@ -6,7 +6,7 @@ uniform float angle;
 uniform float x;
 uniform float y;
 
-float pattern(float2 coord, float angle) {
+float pattern(half2 coord, float angle) {
     float s = sin(angle), c = cos(angle);
     half2 tex = coord - half2(x, y);
     half2 point = half2(

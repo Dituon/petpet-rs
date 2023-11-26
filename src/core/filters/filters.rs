@@ -79,8 +79,7 @@ pub fn build_style(image: &Image, filters: &Vec<AvatarFilter>, index: usize) -> 
                 Some(UniformsBuilder::from(t))
             ),
             AvatarFilter::GRAY => (gray_shader(), None),
-            AvatarFilter::BINARIZE => (binarize_shader(), None),
-            _ => panic!()
+            AvatarFilter::BINARIZE => (binarize_shader(), None)
         };
 
         let shader = image.to_shader(

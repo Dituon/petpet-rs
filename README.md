@@ -14,7 +14,8 @@
 
 - [x] thread pool
 - [ ] cache surface
-- [ ] GPU filter
+- [x] GPU filter
+- [ ] local filter
 - [ ] config file
 
 #### template
