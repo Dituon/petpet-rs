@@ -19,11 +19,15 @@ pub struct PetpetBuilder {
 impl PetpetBuilder {
     pub fn new<'a>(template: PetpetTemplate, background_path: String) -> Result<PetpetBuilder, Error> {
         println!("{}", background_path);
-        let avatar_builders = AvatarBuilderList::new(template.avatar.clone())?;
 
         let background_builder = BackgroundBuilder::new(
             template.background.clone(),
             if has_image(&background_path) { Some(background_path) } else { None },
+        )?;
+
+        let avatar_builders = AvatarBuilderList::new(
+            template.avatar.clone(),
+            background_builder.length
         )?;
 
         Ok(PetpetBuilder {

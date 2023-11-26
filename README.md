@@ -42,10 +42,20 @@
 - [x] `Avatar.style.BINARIZATION`
 
 
-- [ ] `Avatar.filter.*`
+- [x] `Avatar.filter.SWIRL`
+- [x] `Avatar.filter.BULGE`
+- [ ] `Avatar.filter.SWIM`
+- [ ] `Avatar.filter.BLUR`
+- [ ] `Avatar.filter.CONTRAST`
+- [ ] `Avatar.filter.HSB`
+- [ ] `Avatar.filter.HALFTONE`
+- [ ] `Avatar.filter.DOT_SCREEN`
+- [ ] `Avatar.filter.NOISE`
+- [ ] `Avatar.filter.DENOISE`
+- [ ] `Avatar.filter.OIL`
+
+
 - [x] `Avatar.fit`
-
-
 - [x] `Avatar.round`
 - [x] `Avatar.rotate`
 - [x] `Avatar.origin`

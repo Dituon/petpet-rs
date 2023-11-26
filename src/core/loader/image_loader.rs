@@ -18,6 +18,25 @@ pub fn has_image(path: &str) -> bool {
     image_path.exists()
 }
 
+pub fn image_count(path: &str) -> usize {
+    let dir = std::fs::read_dir(path);
+    if dir.is_err() {
+        return 0;
+    }
+
+    dir.unwrap().filter_map(|entry| {
+        entry.ok().and_then(|entry| {
+            let binding = entry.file_name();
+            let file_name = binding.to_string_lossy();
+            let file_number = file_name.trim_end_matches(".png").parse::<usize>();
+            file_number.map(|number| (number, entry)).ok()
+        })
+    })
+        .enumerate()
+        .take_while(|(index, (number, _))| *index == *number)
+        .count()
+}
+
 pub fn load_image(path: String) -> Result<Image, Error> {
     if let Ok(blob) = std::fs::read(&path) {
         let data = Data::new_copy(blob.as_ref());

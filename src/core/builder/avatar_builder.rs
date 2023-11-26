@@ -30,6 +30,7 @@ pub fn by_type(t: &AvatarType) -> usize {
 pub struct AvatarBuiltTemplate {
     pub raw: AvatarTemplate,
     pub pos: CompiledPos,
+    pub max_length: usize,
     pub matrix: Matrix,
 }
 
@@ -48,7 +49,7 @@ pub struct AvatarData<'a> {
 }
 
 impl AvatarBuilder {
-    pub fn new<'a>(mut template: AvatarTemplate) -> Result<AvatarBuilder, Error> {
+    pub fn new<'a>(mut template: AvatarTemplate, background_length: usize) -> Result<AvatarBuilder, Error> {
         let pos: PosDimension = match &template.pos_type {
             AvatarPosType::ZOOM => match &template.pos {
                 PosDimension::P1D(pos) => PosDimension::P2D(vec![pos.clone()]),
@@ -77,23 +78,34 @@ impl AvatarBuilder {
             match style {
                 AvatarStyle::GRAY => {
                     template.filter.push(AvatarFilter::GRAY);
-                },
+                }
                 AvatarStyle::BINARIZATION => {
                     template.filter.push(AvatarFilter::BINARIZE);
-                },
+                }
                 _ => {}
             }
         }
 
         let matrix = Self::compile_matrix();
+        let max_length = Self::prebuild_max_length(&template, background_length);
 
         Ok(AvatarBuilder {
             built_template: AvatarBuiltTemplate {
                 raw: template,
+                max_length,
                 pos,
                 matrix,
             },
         })
+    }
+
+    fn prebuild_max_length(template: &AvatarTemplate, background_length: usize) -> usize {
+        usize::min(
+            background_length,
+            template.filter.iter()
+                .map(|f| f.max_length())
+                .fold(0, |max, current| max.max(current)),
+        )
     }
 
     fn compile_matrix() -> Matrix {
@@ -111,7 +123,7 @@ pub struct AvatarBuilderList {
 }
 
 impl AvatarBuilderList {
-    pub fn new<'a>(templates: Vec<AvatarTemplate>) -> Result<AvatarBuilderList, Error> {
+    pub fn new<'a>(templates: Vec<AvatarTemplate>, background_length: usize) -> Result<AvatarBuilderList, Error> {
         let mut types = 0;
         let mut items = Vec::with_capacity(templates.len());
         for avatar in templates {
@@ -119,7 +131,7 @@ impl AvatarBuilderList {
             items.push((
                 by_type(&avatar._type),
                 avatar.avatar_on_top,
-                AvatarBuilder::new(avatar.clone())?,
+                AvatarBuilder::new(avatar.clone(), background_length)?,
             ));
         };
         Ok(AvatarBuilderList {

@@ -88,10 +88,18 @@ impl<'a> AvatarModel<'a> {
             )
         } else if !template.raw.filter.is_empty() {
             Arc::new(
-                images.par_iter()
-                    .map(|img| build_style(&img, &template.raw.filter))
-                    .collect()
+            (0..template.max_length).into_par_iter()
+                .map(|i| build_style(&images[i % images.len()], &template.raw.filter, i))
+                .collect()
             )
+            //
+            // Arc::new(
+            //     images.par_iter().enumerate()
+            //         .map(|(i, img)|
+            //             build_style(&img, &template.raw.filter, i)
+            //         )
+            //         .collect()
+            // )
         } else {
             Arc::clone(&images)
         }
@@ -199,7 +207,7 @@ impl<'a> AvatarModel<'a> {
 
                 let src_rect = Rect::from_xywh(
                     pdx, pdy,
-                    iw - pdx * 2.0, ih - pdy * 2.0
+                    iw - pdx * 2.0, ih - pdy * 2.0,
                 );
                 let dst_rect = Rect::from_xywh(
                     offset_x + dx / 2.0, offset_y + dy / 2.0,
