@@ -48,8 +48,8 @@
 - [x] `Avatar.filter.BLUR`
 - [x] `Avatar.filter.CONTRAST`
 - [x] `Avatar.filter.HSB`
-- [ ] `Avatar.filter.HALFTONE`
-- [ ] `Avatar.filter.DOT_SCREEN`
+- [x] `Avatar.filter.HALFTONE`
+- [x] `Avatar.filter.DOT_SCREEN`
 - [ ] `Avatar.filter.NOISE`
 - [ ] `Avatar.filter.DENOISE`
 - [x] `Avatar.filter.OIL`
