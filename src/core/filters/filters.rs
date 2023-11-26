@@ -1,9 +1,11 @@
-use skia_safe::{Data, Image, Paint, Point, SamplingOptions};
+use skia_safe::{Data, HighContrastConfig, Image, Paint, Point, SamplingOptions};
 use skia_safe::runtime_effect::ChildPtr;
 
 use crate::core::filters::binarize::binarize_shader;
 use crate::core::filters::bulge::bulge_shader;
+use crate::core::filters::contrast::contrast_shader;
 use crate::core::filters::gray::gray_shader;
+use crate::core::filters::hsb::hsb_shader;
 use crate::core::filters::oil::oil_shader;
 use crate::core::filters::pinch::pinch_shader;
 use crate::core::filters::swim::swim_shader;
@@ -44,8 +46,14 @@ pub fn build_style(image: &Image, filters: &Vec<AvatarFilter>, index: usize) -> 
                 canvas.draw_image(image, Point::from((0.0, 0.0)), Some(&paint));
                 return surface.image_snapshot()
             },
-            // AvatarFilter::CONTRAST(_) => {}
-            // AvatarFilter::HSB(_) => {}
+            AvatarFilter::CONTRAST(t) => (
+                contrast_shader(),
+                Some(UniformsBuilder::from(t))
+            ),
+            AvatarFilter::HSB(t) => (
+                hsb_shader(),
+                Some(UniformsBuilder::from(t))
+            ),
             // AvatarFilter::HALFTONE(_) => {}
             // AvatarFilter::DOT_SCREEN(_) => {}
             // AvatarFilter::NOISE(_) => {}
