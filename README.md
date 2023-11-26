@@ -38,8 +38,8 @@
 
 - [x] `Avatar.style.MIRROR`
 - [x] `Avatar.style.FLIP`
-- [ ] `Avatar.style.GRAY`
-- [ ] `Avatar.style.BINARIZATION`
+- [x] `Avatar.style.GRAY`
+- [x] `Avatar.style.BINARIZATION`
 
 
 - [ ] `Avatar.filter.*`

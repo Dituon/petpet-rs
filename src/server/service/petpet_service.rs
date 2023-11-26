@@ -1,13 +1,10 @@
 use std::collections::HashMap;
-use std::ffi::OsStr;
+use std::path::Path;
+
 use crate::core::builder::petpet_builder::PetpetBuilder;
 use crate::core::errors::Error;
-use crate::core::errors::Error::FileError;
-use std::path::Path;
-use once_cell::sync::Lazy;
+use crate::core::errors::Error::{FileError, TemplateError};
 use crate::core::template::petpet_template::PetpetTemplate;
-
-pub static mut SERVICE: Lazy<PetpetService> = Lazy::new(|| PetpetService::new());
 
 pub struct PetpetService {
     builder_map: HashMap<String, PetpetBuilder>,
@@ -37,7 +34,13 @@ impl PetpetService {
                 let data_path_str = format!("{}/data.json", root_path_str);
                 let template: PetpetTemplate = if Path::new(&data_path_str).exists() {
                     let str = std::fs::read_to_string(data_path_str)?;
-                    serde_json::from_str(&str)?
+                    let jd = &mut serde_json::Deserializer::from_str(&str);
+                    serde_path_to_error::deserialize(jd).map_err(|err|
+                        TemplateError(format!(
+                            "Can not decode {} in {}/data.json: {}",
+                            err.path(), root_path_str, err.inner().to_string()
+                        ))
+                    )?
                 } else {
                     continue
                 };

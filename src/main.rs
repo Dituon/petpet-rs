@@ -1,7 +1,6 @@
 extern crate alloc;
 extern crate reqwest;
 
-use std::error::Error;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
@@ -9,6 +8,7 @@ use std::string::String;
 
 use gif::Repeat;
 use skia_safe::{EncodedImageFormat, Image};
+
 use crate::server::server::PetpetServer;
 
 mod core;
@@ -34,7 +34,7 @@ pub fn save_images_to_file(images: &Vec<Image>, filename: &str) {
         images[0].height() as u16,
         &[]
     ).unwrap();
-    encoder.set_repeat(Repeat::Infinite);
+    let _ = encoder.set_repeat(Repeat::Infinite);
     for img in images {
         let mut ps = img.peek_pixels().unwrap().bytes().unwrap().to_owned();
         let mut frame = gif::Frame::from_rgba_speed(
@@ -44,7 +44,7 @@ pub fn save_images_to_file(images: &Vec<Image>, filename: &str) {
             10
         );
         frame.delay = 65;
-        encoder.write_frame(&frame);
+        let _ = encoder.write_frame(&frame);
     }
 }
 

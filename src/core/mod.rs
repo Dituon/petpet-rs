@@ -11,3 +11,4 @@ pub mod model;
 pub mod errors;
 
 pub mod encoder;
+pub mod filters;

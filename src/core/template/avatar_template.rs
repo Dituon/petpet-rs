@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::core::template::filter_template::AvatarFilter;
+
 #[repr(u8)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
@@ -56,6 +58,8 @@ pub struct AvatarTemplate {
     pub crop_type: AvatarCropType,
     #[serde(default = "style_default")]
     pub style: Vec<AvatarStyle>,
+    #[serde(default = "filter_default")]
+    pub filter: Vec<AvatarFilter>,
     #[serde(default = "fit_default")]
     pub fit: AvatarFit,
     #[serde(default = "round_default")]
@@ -119,6 +123,10 @@ fn crop_type_default() -> AvatarCropType {
 }
 
 fn style_default() -> Vec<AvatarStyle> {
+    Vec::new()
+}
+
+fn filter_default() -> Vec<AvatarFilter> {
     Vec::new()
 }
 

@@ -2,9 +2,9 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Instant;
 
-use axum::{http::StatusCode, Json, Router, routing::{get, post}};
+use axum::{http::StatusCode, Json, Router, routing::post};
 use axum::extract::State;
-use axum::http::{header};
+use axum::http::header;
 use axum::response::IntoResponse;
 
 use crate::core::encoder::encoder::IMAGE_ENCODER;
@@ -54,7 +54,7 @@ async fn generate(
     let builder = logic.service.get_builder(&payload.key).unwrap();
     let start_time0 = Instant::now();
     let images = builder.build(avatar_data).await.unwrap();
-    println!("draw: {:?}", start_time0.elapsed());
+    println!("download & draw: {:?}", start_time0.elapsed());
     let start_time1 = Instant::now();
     let blob = IMAGE_ENCODER.encode(&images).unwrap();
     println!("encode: {:?}", start_time1.elapsed());

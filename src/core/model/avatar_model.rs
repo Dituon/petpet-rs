@@ -12,6 +12,7 @@ use crate::core::builder::background_builder::OriginSize;
 use crate::core::builder::pos_builder::{CompiledNumberPosDimension, eval_size, XYWH};
 use crate::core::errors::Error;
 use crate::core::errors::Error::{AvatarLoadError, TemplateError};
+use crate::core::filters::filters::build_style;
 use crate::core::template::avatar_template::{AvatarCropType, AvatarFit, AvatarStyle, CropPos, TransformOrigin};
 
 pub struct AvatarModel<'a> {
@@ -36,11 +37,7 @@ impl<'a> AvatarModel<'a> {
         }
         let (num_pos, expr_pos) = &template.pos;
 
-        let built_images: Arc<Vec<Image>> = if template.raw.round {
-            Arc::new(images.par_iter()
-                .map(|img| Self::crop_to_circle(img)).collect()
-            )
-        } else { Arc::clone(&images) };
+        let built_images: Arc<Vec<Image>> = Self::pre_build_images(template, images);
 
         let src_rect = match template.raw.crop_type {
             AvatarCropType::NONE => None,
@@ -51,7 +48,7 @@ impl<'a> AvatarModel<'a> {
             }
             AvatarCropType::PERCENT => {
                 if let CropPos::XYXY((x1, y1, x2, y2)) = template.raw.crop.as_ref().unwrap() {
-                    let (sw, sh) = Self::get_image_size(&images[0]);
+                    let (sw, sh) = Self::get_image_size(&built_images[0]);
                     let x1 = (x1 / 100.0) * sw as f32;
                     let y1 = (y1 / 100.0) * sh as f32;
                     let x2 = (x2 / 100.0) * sw as f32;
@@ -62,7 +59,7 @@ impl<'a> AvatarModel<'a> {
         };
 
         if !expr_pos.is_empty() {
-            let size = Self::get_image_size(&images[0]);
+            let size = Self::get_image_size(&built_images[0]);
             let pos = eval_size((num_pos, expr_pos), size)?;
             return Ok(AvatarModel {
                 template,
@@ -78,6 +75,26 @@ impl<'a> AvatarModel<'a> {
             pos: Cow::Borrowed(num_pos),
             src_rect,
         })
+    }
+
+    fn pre_build_images(
+        template: &'a AvatarBuiltTemplate,
+        images: Arc<Vec<Image>>,
+    ) -> Arc<Vec<Image>> {
+        if template.raw.round {
+            Arc::new(images.par_iter()
+                .map(|img| Self::crop_to_circle(img))
+                .collect()
+            )
+        } else if !template.raw.filter.is_empty() {
+            Arc::new(
+                images.par_iter()
+                    .map(|img| build_style(&img, &template.raw.filter))
+                    .collect()
+            )
+        } else {
+            Arc::clone(&images)
+        }
     }
 
     pub fn get_src_rect(&self) -> Option<(&Rect, SrcRectConstraint)> {
@@ -145,20 +162,23 @@ impl<'a> AvatarModel<'a> {
             };
             canvas.rotate(self.template.raw.angle as scalar, Some(p));
         }
+
+        let w = w as f32;
+        let h = h as f32;
         match self.template.raw.fit {
             AvatarFit::FILL => {
-                let rect = Rect::from_xywh(x as f32, y as f32, w as f32, h as f32);
+                let rect = Rect::from_xywh(x as f32, y as f32, w, h);
                 canvas.draw_image_rect(img, self.get_src_rect(), rect, &paint);
             }
             AvatarFit::CONTAIN => {
                 let iw = img.width() as f32;
                 let ih = img.height() as f32;
-                let scale = f32::min(w as f32 / iw, h as f32 / ih);
+                let scale = f32::min(w / iw, h / ih);
 
                 let scaled_width = iw * scale;
                 let scaled_height = ih * scale;
-                let offset_x = x as f32 + (w as f32 - scaled_width) / 2.0;
-                let offset_y = y as f32 + (h as f32 - scaled_height) / 2.0;
+                let offset_x = x as f32 + (w - scaled_width) / 2.0;
+                let offset_y = y as f32 + (h - scaled_height) / 2.0;
 
                 let rect = Rect::from_xywh(offset_x, offset_y, scaled_width, scaled_height);
                 canvas.draw_image_rect(img, self.get_src_rect(), rect, &paint);
@@ -166,30 +186,28 @@ impl<'a> AvatarModel<'a> {
             AvatarFit::COVER => {
                 let iw = img.width() as f32;
                 let ih = img.height() as f32;
-                let scale = f32::max(w as f32 / iw, h as f32 / ih);
+                let scale = f32::max(w / iw, h / ih);
 
                 let scaled_width = iw * scale;
                 let scaled_height = ih * scale;
-                let offset_x = x as f32 + (w as f32 - scaled_width) / 2.0;
-                let offset_y = y as f32 + (h as f32 - scaled_height) / 2.0;
-                let dx = scaled_width - w as f32;
-                let dy = scaled_height - h as f32;
+                let offset_x = x as f32 + (w - scaled_width) / 2.0;
+                let offset_y = y as f32 + (h - scaled_height) / 2.0;
+                let dx = scaled_width - w;
+                let dy = scaled_height - h;
                 let pdx: f32 = dx / scale / 2.0;
                 let pdy: f32 = dy / scale / 2.0;
 
                 let src_rect = Rect::from_xywh(
-                    offset_x,
-                    offset_y,
-                    scaled_width,
-                    scaled_height,
+                    pdx, pdy,
+                    iw - pdx * 2.0, ih - pdy * 2.0
                 );
                 let dst_rect = Rect::from_xywh(
-                    pdx, pdy,
-                    scaled_width, scaled_height,
+                    offset_x + dx / 2.0, offset_y + dy / 2.0,
+                    scaled_width - dx, scaled_height - dy,
                 );
                 canvas.draw_image_rect(
                     img,
-                    Some((&src_rect, SrcRectConstraint::Strict)),
+                    Some((&src_rect, SrcRectConstraint::Fast)),
                     dst_rect,
                     &paint,
                 );

@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use std::vec;
 
 use once_cell::sync::Lazy;
@@ -38,7 +38,9 @@ impl Requester {
 
     pub fn get_images(&self, url: reqwest::Url) -> AvatarDataItem {
         Box::pin(async move {
+            let time = Instant::now();
             let blob = self.client.get(url).send().await?.bytes().await?;
+            println!("download: {:?}", time.elapsed());
             let data = Data::new_copy(blob.as_ref());
             let mut codec = Codec::from_data(data).unwrap();
             let info = ImageInfo::new(

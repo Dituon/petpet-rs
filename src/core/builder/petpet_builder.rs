@@ -58,7 +58,7 @@ impl PetpetBuilder {
                     0,
                     None,
                 ).unwrap();
-                let mut canvas = temp_surface.canvas();
+                let canvas = temp_surface.canvas();
                 for ba in &bottom_avatars {
                     ba.draw(canvas, i).unwrap();
                 }
@@ -72,7 +72,7 @@ impl PetpetBuilder {
         } else {
             let mut result = Vec::with_capacity(bgs.len());
             for (i, bg) in bgs.iter().enumerate() {
-                let mut canvas = surface.canvas();
+                let canvas = surface.canvas();
                 for ba in &bottom_avatars {
                     ba.draw(canvas, i)?;
                 }
