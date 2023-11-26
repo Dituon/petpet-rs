@@ -50,8 +50,8 @@
 - [x] `Avatar.filter.HSB`
 - [x] `Avatar.filter.HALFTONE`
 - [x] `Avatar.filter.DOT_SCREEN`
-- [ ] `Avatar.filter.NOISE`
-- [ ] `Avatar.filter.DENOISE`
+- [x] `Avatar.filter.NOISE`
+- [x] `Avatar.filter.DENOISE`
 - [x] `Avatar.filter.OIL`
 
 

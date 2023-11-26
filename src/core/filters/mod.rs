@@ -10,3 +10,5 @@ mod contrast;
 mod hsb;
 mod dot_screen;
 mod color_halftone;
+mod noise;
+mod denoise;

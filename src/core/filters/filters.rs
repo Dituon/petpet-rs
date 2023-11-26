@@ -5,9 +5,11 @@ use crate::core::filters::binarize::binarize_shader;
 use crate::core::filters::bulge::bulge_shader;
 use crate::core::filters::color_halftone::color_halftone_shader;
 use crate::core::filters::contrast::contrast_shader;
+use crate::core::filters::denoise::denoise_shader;
 use crate::core::filters::dot_screen::dot_screen_shader;
 use crate::core::filters::gray::gray_shader;
 use crate::core::filters::hsb::hsb_shader;
+use crate::core::filters::noise::noise_shader;
 use crate::core::filters::oil::oil_shader;
 use crate::core::filters::pinch::pinch_shader;
 use crate::core::filters::swim::swim_shader;
@@ -64,8 +66,14 @@ pub fn build_style(image: &Image, filters: &Vec<AvatarFilter>, index: usize) -> 
                 dot_screen_shader(),
                 Some(UniformsBuilder::from(t))
             ),
-            // AvatarFilter::NOISE(_) => {}
-            // AvatarFilter::DENOISE(_) => {}
+            AvatarFilter::NOISE(t) => (
+                noise_shader(),
+                Some(UniformsBuilder::from(t))
+            ),
+            AvatarFilter::DENOISE(t) => (
+                denoise_shader(),
+                Some(UniformsBuilder::from(t))
+            ),
             AvatarFilter::OIL(t) => (
                 oil_shader(),
                 Some(UniformsBuilder::from(t))
