@@ -52,7 +52,7 @@
 - [ ] `Avatar.filter.DOT_SCREEN`
 - [ ] `Avatar.filter.NOISE`
 - [ ] `Avatar.filter.DENOISE`
-- [ ] `Avatar.filter.OIL`
+- [x] `Avatar.filter.OIL`
 
 
 - [x] `Avatar.fit`

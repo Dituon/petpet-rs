@@ -4,6 +4,7 @@ use skia_safe::runtime_effect::ChildPtr;
 use crate::core::filters::binarize::binarize_shader;
 use crate::core::filters::bulge::bulge_shader;
 use crate::core::filters::gray::gray_shader;
+use crate::core::filters::oil::oil_shader;
 use crate::core::filters::pinch::pinch_shader;
 use crate::core::filters::swim::swim_shader;
 use crate::core::filters::swirl::swirl_shader;
@@ -44,7 +45,10 @@ pub fn build_style(image: &Image, filters: &Vec<AvatarFilter>, index: usize) -> 
             // AvatarFilter::DOT_SCREEN(_) => {}
             // AvatarFilter::NOISE(_) => {}
             // AvatarFilter::DENOISE(_) => {}
-            // AvatarFilter::OIL(_) => {}
+            AvatarFilter::OIL(t) => (
+                oil_shader(),
+                Some(UniformsBuilder::from(t))
+            ),
             AvatarFilter::GRAY => (gray_shader(), None),
             AvatarFilter::BINARIZE => (binarize_shader(), None),
             _ => panic!()
