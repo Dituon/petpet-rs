@@ -6,3 +6,4 @@ mod pinch;
 mod swirl;
 mod swim;
 mod oil;
+mod blur;

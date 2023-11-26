@@ -45,7 +45,7 @@
 - [x] `Avatar.filter.SWIRL`
 - [x] `Avatar.filter.BULGE`
 - [x] `Avatar.filter.SWIM`
-- [ ] `Avatar.filter.BLUR`
+- [x] `Avatar.filter.BLUR`
 - [ ] `Avatar.filter.CONTRAST`
 - [ ] `Avatar.filter.HSB`
 - [ ] `Avatar.filter.HALFTONE`

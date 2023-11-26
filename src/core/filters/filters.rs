@@ -1,4 +1,4 @@
-use skia_safe::{Data, Image, Paint, SamplingOptions};
+use skia_safe::{Data, Image, Paint, Point, SamplingOptions};
 use skia_safe::runtime_effect::ChildPtr;
 
 use crate::core::filters::binarize::binarize_shader;
@@ -11,13 +11,10 @@ use crate::core::filters::swirl::swirl_shader;
 use crate::core::template::filter_template::{AvatarFilter, UniformsBuilder};
 
 pub fn build_style(image: &Image, filters: &Vec<AvatarFilter>, index: usize) -> Image {
-    let shader = image.to_shader(
-        None,
-        SamplingOptions::default(),
-        None,
+    let mut surface = skia_safe::surfaces::raster_n32_premul(
+        (image.width(), image.height())
     ).unwrap();
-
-    let shaders = vec![ChildPtr::Shader(shader)];
+    let canvas = surface.canvas();
     let mut paint = Paint::default();
 
     for style in filters {
@@ -38,7 +35,15 @@ pub fn build_style(image: &Image, filters: &Vec<AvatarFilter>, index: usize) -> 
                 swim_shader(),
                 Some(UniformsBuilder::from(t))
             ),
-            // AvatarFilter::BLUR(_) => {}
+            AvatarFilter::BLUR(t) => {
+                let radius = &t.radius[index % t.radius.len()];
+                paint.set_image_filter(skia_safe::image_filters::blur(
+                    (*radius, *radius),
+                    None, None, None
+                ));
+                canvas.draw_image(image, Point::from((0.0, 0.0)), Some(&paint));
+                return surface.image_snapshot()
+            },
             // AvatarFilter::CONTRAST(_) => {}
             // AvatarFilter::HSB(_) => {}
             // AvatarFilter::HALFTONE(_) => {}
@@ -53,6 +58,13 @@ pub fn build_style(image: &Image, filters: &Vec<AvatarFilter>, index: usize) -> 
             AvatarFilter::BINARIZE => (binarize_shader(), None),
             _ => panic!()
         };
+
+        let shader = image.to_shader(
+            None,
+            SamplingOptions::default(),
+            None,
+        ).unwrap();
+        let shaders = vec![ChildPtr::Shader(shader)];
         let m_shader = eff.make_shader(
             if uniforms.is_none() {
                 Data::new_empty()
@@ -65,10 +77,6 @@ pub fn build_style(image: &Image, filters: &Vec<AvatarFilter>, index: usize) -> 
         paint.set_shader(m_shader);
     }
 
-    let mut surface = skia_safe::surfaces::raster_n32_premul(
-        (image.width(), image.height())
-    ).unwrap();
-    let canvas = surface.canvas();
     canvas.draw_paint(&paint);
     surface.image_snapshot()
 }
