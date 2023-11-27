@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::core::template::avatar_template::AvatarTemplate;
 use crate::core::template::background_template::BackgroundTemplate;
+use crate::core::template::text_template::TextTemplate;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum PetpetType {
@@ -15,7 +16,8 @@ pub struct PetpetTemplate {
     pub _type: PetpetType,
     #[serde(default = "avatar_default")]
     pub avatar: Vec<AvatarTemplate>,
-    // text: Vec<TextTemplate>,
+    #[serde(default = "text_default")]
+    pub text: Vec<TextTemplate>,
     #[serde(default = "background_default")]
     pub background: Option<BackgroundTemplate>,
     #[serde(default = "delay_default")]
@@ -31,6 +33,10 @@ pub struct PetpetTemplate {
 }
 
 fn avatar_default() -> Vec<AvatarTemplate> {
+    vec![]
+}
+
+fn text_default() -> Vec<TextTemplate> {
     vec![]
 }
 

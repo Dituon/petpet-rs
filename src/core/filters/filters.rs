@@ -1,4 +1,4 @@
-use skia_safe::{Data, HighContrastConfig, Image, Paint, Point, SamplingOptions};
+use skia_safe::{Data, Image, Paint, Point, SamplingOptions};
 use skia_safe::runtime_effect::ChildPtr;
 
 use crate::core::filters::binarize::binarize_shader;

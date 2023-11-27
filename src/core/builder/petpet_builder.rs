@@ -2,8 +2,9 @@ use once_cell::sync::Lazy;
 use rayon::prelude::*;
 use skia_safe::Image;
 
-use crate::core::builder::avatar_builder::{AvatarBuilderList, AvatarData, AvatarFrames};
+use crate::core::builder::avatar_builder::{AvatarBuilderList, AvatarData};
 use crate::core::builder::background_builder::BackgroundBuilder;
+use crate::core::builder::text_builder::TextBuilderList;
 use crate::core::errors::Error;
 use crate::core::loader::image_loader::has_image;
 use crate::core::template::petpet_template::PetpetTemplate;
@@ -13,6 +14,7 @@ pub static MULTITHREADED_DRAWING: Lazy<bool> = Lazy::new(|| true);
 pub struct PetpetBuilder {
     pub template: PetpetTemplate,
     avatar_builders: AvatarBuilderList,
+    text_builders: TextBuilderList,
     background_builder: BackgroundBuilder,
 }
 
@@ -30,9 +32,14 @@ impl PetpetBuilder {
             background_builder.length
         )?;
 
+        let text_builders = TextBuilderList::new(
+            template.text.clone()
+        )?;
+
         Ok(PetpetBuilder {
             template,
             avatar_builders,
+            text_builders,
             background_builder,
         })
     }
@@ -44,6 +51,8 @@ impl PetpetBuilder {
         let mut bottom_avatars = Vec::with_capacity(a_count);
 
         let avatars = self.avatar_builders.build(avatar_data).await?;
+        let texts = self.text_builders.build()?;
+
         for avatar in &avatars {
             if avatar.template.raw.avatar_on_top {
                 top_avatars.push(avatar)
@@ -81,6 +90,9 @@ impl PetpetBuilder {
                 for ta in &top_avatars {
                     ta.draw(canvas, i).unwrap();
                 }
+                for text in &texts {
+                    text.draw(canvas);
+                }
                 temp_surface.image_snapshot()
             }).collect();
             Ok((arrs, t_delay))
@@ -94,6 +106,9 @@ impl PetpetBuilder {
                 canvas.draw_image(bg, (0, 0), None);
                 for ta in &top_avatars {
                     ta.draw(canvas, i)?;
+                }
+                for text in &texts {
+                    text.draw(canvas);
                 }
                 result.push(surface.image_snapshot());
             }

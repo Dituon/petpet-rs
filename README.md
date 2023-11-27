@@ -22,7 +22,22 @@
 
 **Text**
 
-- [ ] `Text.*`
+**TextData**
+
+- [x] `TextData.text`
+- [x] `TextData.pos`
+- [ ] `TextData.angle`
+- [x] `TextData.color`
+- [ ] `TextData.font`
+- [x] `TextData.size`
+- [ ] `TextData.align`
+- [ ] `TextData.wrap`
+- [ ] `TextData.style`
+- [ ] `TextData.position`
+- [ ] `TextData.origin`
+- [ ] `TextData.strokeColor`
+- [ ] `TextData.strokeSize`
+- [ ] `TextData.greedy`
 
 **Avatar**
 
