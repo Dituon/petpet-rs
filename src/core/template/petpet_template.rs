@@ -13,6 +13,7 @@ pub enum PetpetType {
 pub struct PetpetTemplate {
     #[serde(rename = "type")]
     pub _type: PetpetType,
+    #[serde(default = "avatar_default")]
     pub avatar: Vec<AvatarTemplate>,
     // text: Vec<TextTemplate>,
     #[serde(default = "background_default")]
@@ -27,6 +28,10 @@ pub struct PetpetTemplate {
     pub reverse: bool,
     #[serde(default = "hidden_default")]
     pub hidden: bool,
+}
+
+fn avatar_default() -> Vec<AvatarTemplate> {
+    vec![]
 }
 
 fn background_default() -> Option<BackgroundTemplate> {

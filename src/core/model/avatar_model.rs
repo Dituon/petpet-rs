@@ -12,7 +12,7 @@ use crate::core::builder::background_builder::OriginSize;
 use crate::core::builder::pos_builder::{CompiledNumberPosDimension, eval_size, XYWH};
 use crate::core::errors::Error;
 use crate::core::errors::Error::{AvatarLoadError, TemplateError};
-use crate::core::filters::filters::build_style;
+use crate::core::filters::filters::build_filter;
 use crate::core::template::avatar_template::{AvatarCropType, AvatarFit, AvatarStyle, CropPos, TransformOrigin};
 
 pub struct AvatarModel<'a> {
@@ -84,28 +84,27 @@ impl<'a> AvatarModel<'a> {
         template: &'a AvatarBuiltTemplate,
         images: Arc<Vec<Image>>,
     ) -> Arc<Vec<Image>> {
-        if template.raw.round {
-            Arc::new(images.par_iter()
-                .map(|img| Self::crop_to_circle(img))
-                .collect()
-            )
-        } else if !template.raw.filter.is_empty() {
-            Arc::new(
-            (0..template.max_length).into_par_iter()
-                .map(|i| build_style(&images[i % images.len()], &template.raw.filter, i))
-                .collect()
-            )
-            //
-            // Arc::new(
-            //     images.par_iter().enumerate()
-            //         .map(|(i, img)|
-            //             build_style(&img, &template.raw.filter, i)
-            //         )
-            //         .collect()
-            // )
-        } else {
-            Arc::clone(&images)
+        if !template.raw.round && template.raw.filter.is_empty() {
+            return Arc::clone(&images);
         }
+
+        let mut built_images = Arc::clone(&images);
+        if template.raw.round {
+            built_images = Arc::new(built_images.par_iter()
+                .map(|img| Self::crop_to_circle(img))
+                .collect())
+        }
+        if !template.raw.filter.is_empty() {
+            built_images = Arc::new((0..template.max_length).into_par_iter()
+                .map(|i|
+                    build_filter(
+                        &built_images[i % images.len()],
+                        &template.raw.filter,
+                        i,
+                    )
+                ).collect())
+        };
+        built_images
     }
 
     pub fn get_src_rect(&self) -> Option<(&Rect, SrcRectConstraint)> {

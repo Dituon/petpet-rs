@@ -62,7 +62,6 @@ pub struct UniformsBuilder<'a> {
 impl UniformsBuilder<'_> {
     pub fn build(&self, shader: &RuntimeEffect, image: &Image, index: usize) -> Vec<u8> {
         let mut values = Vec::new();
-        println!("index: {}", index);
 
         for uniform in shader.uniforms().iter() {
             let k = uniform.name();

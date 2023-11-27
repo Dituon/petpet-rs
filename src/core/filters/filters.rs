@@ -16,7 +16,7 @@ use crate::core::filters::swim::swim_shader;
 use crate::core::filters::swirl::swirl_shader;
 use crate::core::template::filter_template::{AvatarFilter, UniformsBuilder};
 
-pub fn build_style(image: &Image, filters: &Vec<AvatarFilter>, index: usize) -> Image {
+pub fn build_filter(image: &Image, filters: &Vec<AvatarFilter>, index: usize) -> Image {
     let mut surface = skia_safe::surfaces::raster_n32_premul(
         (image.width(), image.height())
     ).unwrap();
