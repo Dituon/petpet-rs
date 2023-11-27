@@ -5,6 +5,7 @@ use skia_safe::{AlphaType, Color, ColorType, Image, ImageInfo, Surface};
 use crate::core::builder::pos_builder::{compile_size, CompiledSize, eval_background_size};
 use crate::core::errors::Error;
 use crate::core::errors::Error::TemplateError;
+use crate::core::loader::color_util::parse_color;
 use crate::core::loader::image_loader::{image_count, load_cached_background};
 use crate::core::template::background_template::BackgroundTemplate;
 
@@ -23,20 +24,14 @@ impl BackgroundBuilder {
     ) -> Result<BackgroundBuilder, Error> {
         match template {
             Some(template) => {
-                if let Ok(color_u32) = u32::from_str_radix(&template.color[1..], 16) {
-                    Ok(BackgroundBuilder {
-                        info: Some((
-                            compile_size(&template.size),
-                            Color::from(color_u32)
-                        )),
-                        length: template.length as usize,
-                        path,
-                    })
-                } else {
-                    Err(TemplateError(
-                        format!("Background color error: {}", template.color)
-                    ))
-                }
+                Ok(BackgroundBuilder {
+                    info: Some((
+                        compile_size(&template.size),
+                        parse_color(&template.color)?
+                    )),
+                    length: template.length as usize,
+                    path,
+                })
             }
             None => {
                 if let Some(p) = path {
@@ -80,7 +75,7 @@ impl BackgroundBuilder {
                         s.canvas().clear(*color);
                         images.push(s.image_snapshot());
                     }
-                    return Ok((s, Cow::Owned(images)))
+                    return Ok((s, Cow::Owned(images)));
                 }
                 (s, Cow::Borrowed(file_images))
             }
