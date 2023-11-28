@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::core::template::filter_template::AvatarFilter;
+use crate::core::template::petpet_template::TransformOrigin;
 
 #[repr(u8)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -164,11 +165,4 @@ fn angle_default() -> f64 {
 
 fn opacity_default() -> f64 {
     1.0
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[derive(Serialize, Deserialize)]
-pub enum TransformOrigin {
-    DEFAULT,
-    CENTER,
 }

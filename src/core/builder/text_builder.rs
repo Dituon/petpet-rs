@@ -19,7 +19,8 @@ pub struct TextBuiltTemplate {
 }
 
 impl TextBuilder {
-    pub fn new(template: TextTemplate) -> Result<Self, Error> {
+    pub fn new(mut template: TextTemplate) -> Result<Self, Error> {
+        template.angle %= 360.0;
         let fill_color = parse_color(&template.color)?;
         let fill_paint = if fill_color.a() != 0 {
             let mut paint = Paint::default();

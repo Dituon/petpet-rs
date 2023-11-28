@@ -4,7 +4,7 @@ use std::ops::Neg;
 use std::sync::Arc;
 
 use rayon::prelude::*;
-use skia_safe::{Canvas, Image, M44, Matrix, Paint, Path, Point, Rect, scalar};
+use skia_safe::{Canvas, Image, Matrix, Paint, Path, Point, Rect, scalar};
 use skia_safe::canvas::SrcRectConstraint;
 
 use crate::core::builder::avatar_builder::{AvatarBuiltTemplate, AvatarFrames};
@@ -13,7 +13,8 @@ use crate::core::builder::pos_builder::{CompiledNumberPosDimension, eval_size, X
 use crate::core::errors::Error;
 use crate::core::errors::Error::{AvatarLoadError, TemplateError};
 use crate::core::filters::filters::build_filter;
-use crate::core::template::avatar_template::{AvatarCropType, AvatarFit, AvatarStyle, CropPos, TransformOrigin};
+use crate::core::template::avatar_template::{AvatarCropType, AvatarFit, AvatarStyle, CropPos};
+use crate::core::template::petpet_template::TransformOrigin;
 
 pub struct AvatarModel<'a> {
     pub template: &'a AvatarBuiltTemplate,
@@ -144,7 +145,7 @@ impl<'a> AvatarModel<'a> {
                 ], &p3d[index % p3d.len()]).ok_or(TemplateError(
                     format!("can not build Matrix, {:?}", &p3d[index % p3d.len()])
                 ))?;
-                canvas.set_matrix(&(M44::from(m)));
+                canvas.concat(&m);
                 canvas.draw_image(img, (0, 0), None);
                 canvas.reset_matrix();
             }
@@ -163,7 +164,7 @@ impl<'a> AvatarModel<'a> {
 
         self.scale_img(canvas, (x, y, w, h));
 
-        let has_angle = self.template.raw.angle % 360.0 != 0.0;
+        let has_angle = self.template.raw.angle != 0.0;
         if has_angle {
             canvas.save();
             let p = match self.template.raw.origin {
@@ -226,7 +227,6 @@ impl<'a> AvatarModel<'a> {
         if has_angle {
             canvas.restore();
         }
-        canvas.reset_matrix();
     }
 
     fn scale_img(&self, canvas: &Canvas, (x, y, w, h): XYWH) {

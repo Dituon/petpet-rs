@@ -32,6 +32,13 @@ pub struct PetpetTemplate {
     pub hidden: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
+pub enum TransformOrigin {
+    DEFAULT,
+    CENTER,
+}
+
 fn avatar_default() -> Vec<AvatarTemplate> {
     vec![]
 }

@@ -65,6 +65,7 @@ impl AvatarBuilder {
         };
 
         let pos = compile_pos(pos)?;
+        template.angle %= 360.0;
 
         template.crop = match &template.crop_type {
             AvatarCropType::NONE => None,

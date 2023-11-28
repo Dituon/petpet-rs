@@ -17,6 +17,7 @@
 - [x] GPU filter
 - [ ] local filter
 - [ ] config file
+- [ ] mix fonts
 
 #### template
 
@@ -26,7 +27,7 @@
 
 - [x] `TextData.text`
 - [x] `TextData.pos`
-- [ ] `TextData.angle`
+- [x] `TextData.angle`
 - [x] `TextData.color`
 - [x] `TextData.font`
 - [x] `TextData.size`
@@ -34,7 +35,7 @@
 - [ ] `TextData.wrap`
 - [x] `TextData.style`
 - [ ] `TextData.position`
-- [ ] `TextData.origin`
+- [x] `TextData.origin`
 - [x] `TextData.strokeColor`
 - [x] `TextData.strokeSize`
 - [ ] `TextData.greedy`

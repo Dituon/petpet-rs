@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use crate::core::template::petpet_template::TransformOrigin;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -11,7 +12,7 @@ pub enum TextPos {
 pub enum TextAlign {
     LEFT,
     RIGHT,
-    CENTER
+    CENTER,
 }
 
 impl TextAlign {
@@ -24,12 +25,14 @@ impl TextAlign {
     }
 }
 
+#[deny(warnings)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TextStyle {
     PLAIN,
     BOLD,
     ITALIC,
-    BOLD_ITALIC
+    #[allow(non_camel_case_types)]
+    BOLD_ITALIC,
 }
 
 impl TextStyle {
@@ -49,6 +52,8 @@ pub struct TextTemplate {
     pub pos: TextPos,
     #[serde(default = "size_default")]
     pub size: f32,
+    #[serde(default = "angle_default")]
+    pub angle: f32,
     #[serde(default = "align_default")]
     pub align: TextAlign,
     #[serde(default = "color_default")]
@@ -57,14 +62,20 @@ pub struct TextTemplate {
     pub font: String,
     #[serde(default = "style_default")]
     pub style: TextStyle,
-    #[serde(rename="strokeColor", default = "stroke_color_default")]
+    #[serde(rename = "strokeColor", default = "stroke_color_default")]
     pub stroke_color: String,
-    #[serde(rename="strokeSize", default = "stroke_size_default")]
+    #[serde(rename = "strokeSize", default = "stroke_size_default")]
     pub stroke_size: f32,
+    #[serde(default = "origin_default")]
+    pub origin: TransformOrigin,
 }
 
 fn size_default() -> f32 {
     24.0
+}
+
+fn angle_default() -> f32 {
+    0.0
 }
 
 fn align_default() -> TextAlign {
@@ -89,4 +100,8 @@ fn stroke_color_default() -> String {
 
 fn stroke_size_default() -> f32 {
     0.0
+}
+
+fn origin_default() -> TransformOrigin {
+    TransformOrigin::DEFAULT
 }
