@@ -16,7 +16,7 @@
 - [ ] cache surface
 - [x] GPU filter
 - [ ] local filter
-- [ ] config file
+- [x] config file
 - [ ] mix fonts
 
 #### template
@@ -43,22 +43,14 @@
 **Avatar**
 
 - [x] `Avatar.type`
-
-
 - [x] `Avatar.pos`
 - [x] `Avatar.posType`
-
-
 - [x] `Avatar.crop`
 - [x] `Avatar.cropType`
-
-
 - [x] `Avatar.style.MIRROR`
 - [x] `Avatar.style.FLIP`
 - [x] `Avatar.style.GRAY`
 - [x] `Avatar.style.BINARIZATION`
-
-
 - [x] `Avatar.filter.SWIRL`
 - [x] `Avatar.filter.BULGE`
 - [x] `Avatar.filter.SWIM`
@@ -70,15 +62,11 @@
 - [x] `Avatar.filter.NOISE`
 - [x] `Avatar.filter.DENOISE`
 - [x] `Avatar.filter.OIL`
-
-
 - [x] `Avatar.fit`
 - [x] `Avatar.round`
 - [x] `Avatar.rotate`
 - [x] `Avatar.origin`
 - [x] `Avatar.avatarOnTop`
-
-
 - [x] `Avatar.angle`
 - [x] `Avatar.opacity`
 

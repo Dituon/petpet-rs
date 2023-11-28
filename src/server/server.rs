@@ -1,3 +1,4 @@
+use core::str::FromStr;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Instant;
@@ -11,6 +12,7 @@ use crate::core::encoder::encoder::IMAGE_ENCODER;
 use crate::core::errors::Error;
 use crate::core::http::avatar_data_factory::create_avatar_data;
 use crate::core::http::template_data::PetpetData;
+use crate::server::config::ServerConfig;
 use crate::server::service::petpet_service::PetpetService;
 
 pub struct PetpetServer {
@@ -19,12 +21,10 @@ pub struct PetpetServer {
 }
 
 impl PetpetServer {
-    pub fn new() -> Result<Self, Error> {
+    pub fn new(config: ServerConfig) -> Result<Self, Error> {
         Ok(PetpetServer {
-            addr: SocketAddr::from(([127, 0, 0, 1], 3000)),
-            service: PetpetService::with_paths(&vec![
-                "./data"
-            ])?,
+            addr: SocketAddr::from_str(&config.address).unwrap(),
+            service: PetpetService::with_paths(&config.data_path)?,
         })
     }
 

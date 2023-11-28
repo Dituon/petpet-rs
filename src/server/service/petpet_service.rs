@@ -59,10 +59,10 @@ impl PetpetService {
         }
     }
 
-    pub fn with_paths<'a>(paths: &Vec<&str>) -> Result<Self, Error> {
+    pub fn with_paths<'a>(paths: &Vec<String>) -> Result<Self, Error> {
         let mut s = PetpetService::new();
-        for &path in paths {
-            s.join_path(path)?;
+        for path in paths {
+            s.join_path(&path)?;
         }
         Ok(s)
     }
