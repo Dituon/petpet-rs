@@ -35,8 +35,8 @@
 - [x] `TextData.style`
 - [ ] `TextData.position`
 - [ ] `TextData.origin`
-- [ ] `TextData.strokeColor`
-- [ ] `TextData.strokeSize`
+- [x] `TextData.strokeColor`
+- [x] `TextData.strokeSize`
 - [ ] `TextData.greedy`
 
 **Avatar**

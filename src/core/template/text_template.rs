@@ -47,7 +47,6 @@ impl TextStyle {
 pub struct TextTemplate {
     pub text: String,
     pub pos: TextPos,
-
     #[serde(default = "size_default")]
     pub size: f32,
     #[serde(default = "align_default")]
@@ -58,6 +57,10 @@ pub struct TextTemplate {
     pub font: String,
     #[serde(default = "style_default")]
     pub style: TextStyle,
+    #[serde(rename="strokeColor", default = "stroke_color_default")]
+    pub stroke_color: String,
+    #[serde(rename="strokeSize", default = "stroke_size_default")]
+    pub stroke_size: f32,
 }
 
 fn size_default() -> f32 {
@@ -78,4 +81,12 @@ fn font_default() -> String {
 
 fn style_default() -> TextStyle {
     TextStyle::PLAIN
+}
+
+fn stroke_color_default() -> String {
+    "#ffffff".to_string()
+}
+
+fn stroke_size_default() -> f32 {
+    0.0
 }

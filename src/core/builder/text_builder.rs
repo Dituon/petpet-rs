@@ -1,4 +1,4 @@
-use skia_safe::{FontStyle, Paint, Typeface};
+use skia_safe::{Paint, Typeface};
 use skia_safe::utils::text_utils::Align;
 
 use crate::core::errors::Error;
@@ -12,16 +12,32 @@ pub struct TextBuilder {
 
 pub struct TextBuiltTemplate {
     pub raw: TextTemplate,
-    pub paint: Paint,
+    pub fill_paint: Option<Paint>,
+    pub stroke_paint: Option<Paint>,
     pub align: Align,
     pub typeface: Typeface,
 }
 
 impl TextBuilder {
     pub fn new(template: TextTemplate) -> Result<Self, Error> {
-        let color = parse_color(&template.color)?;
-        let mut paint = Paint::default();
-        paint.set_color(color);
+        let fill_color = parse_color(&template.color)?;
+        let fill_paint = if fill_color.a() != 0 {
+            let mut paint = Paint::default();
+            paint.set_color(fill_color);
+            Some(paint)
+        } else {
+            None
+        };
+        let stroke_paint = if template.stroke_size != 0.0 {
+            let stroke_color = parse_color(&template.stroke_color)?;
+            let mut paint = Paint::default();
+            paint.set_color(stroke_color);
+            paint.set_stroke(true);
+            paint.set_stroke_width(template.stroke_size);
+            Some(paint)
+        } else {
+            None
+        };
         let align = template.align.to_skia_align();
         let typeface = Typeface::new(
             &template.font,
@@ -31,7 +47,8 @@ impl TextBuilder {
         Ok(TextBuilder {
             built_template: TextBuiltTemplate{
                 raw: template,
-                paint,
+                fill_paint,
+                stroke_paint,
                 align,
                 typeface,
             },
