@@ -28,11 +28,11 @@
 - [x] `TextData.pos`
 - [ ] `TextData.angle`
 - [x] `TextData.color`
-- [ ] `TextData.font`
+- [x] `TextData.font`
 - [x] `TextData.size`
-- [ ] `TextData.align`
+- [x] `TextData.align`
 - [ ] `TextData.wrap`
-- [ ] `TextData.style`
+- [x] `TextData.style`
 - [ ] `TextData.position`
 - [ ] `TextData.origin`
 - [ ] `TextData.strokeColor`

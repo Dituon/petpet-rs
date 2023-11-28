@@ -15,8 +15,7 @@ impl<'a> TextModel<'a> {
     }
 
     pub fn draw(&self, canvas: &Canvas) {
-        let face = skia_safe::typeface::Typeface::from_name("Arial", Default::default()).unwrap();
-        let font = Font::from_typeface(face, self.template.raw.size);
+        let font = Font::from_typeface(&self.template.typeface, self.template.raw.size);
         if let TextPos::XY((x, y)) = self.template.raw.pos {
             skia_safe::utils::text_utils::draw_str(
                 canvas,
@@ -24,6 +23,7 @@ impl<'a> TextModel<'a> {
                 Point::from((x, y)),
                 &font,
                 &self.template.paint,
+                //see https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/core/html/canvas/text_metrics.cc
                 self.template.align
             );
         } else {

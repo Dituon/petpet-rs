@@ -25,6 +25,25 @@ impl TextAlign {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum TextStyle {
+    PLAIN,
+    BOLD,
+    ITALIC,
+    BOLD_ITALIC
+}
+
+impl TextStyle {
+    pub fn to_skia_text_style(&self) -> skia_safe::font_style::FontStyle {
+        match self {
+            TextStyle::PLAIN => skia_safe::font_style::FontStyle::normal(),
+            TextStyle::BOLD => skia_safe::font_style::FontStyle::bold(),
+            TextStyle::ITALIC => skia_safe::font_style::FontStyle::italic(),
+            TextStyle::BOLD_ITALIC => skia_safe::font_style::FontStyle::bold_italic()
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TextTemplate {
     pub text: String,
     pub pos: TextPos,
@@ -35,6 +54,10 @@ pub struct TextTemplate {
     pub align: TextAlign,
     #[serde(default = "color_default")]
     pub color: String,
+    #[serde(default = "font_default")]
+    pub font: String,
+    #[serde(default = "style_default")]
+    pub style: TextStyle,
 }
 
 fn size_default() -> f32 {
@@ -47,4 +70,12 @@ fn align_default() -> TextAlign {
 
 fn color_default() -> String {
     "#ffffff".to_string()
+}
+
+fn font_default() -> String {
+    "Arial".to_string()
+}
+
+fn style_default() -> TextStyle {
+    TextStyle::PLAIN
 }

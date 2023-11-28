@@ -1,4 +1,4 @@
-use skia_safe::Paint;
+use skia_safe::{FontStyle, Paint, Typeface};
 use skia_safe::utils::text_utils::Align;
 
 use crate::core::errors::Error;
@@ -14,6 +14,7 @@ pub struct TextBuiltTemplate {
     pub raw: TextTemplate,
     pub paint: Paint,
     pub align: Align,
+    pub typeface: Typeface,
 }
 
 impl TextBuilder {
@@ -22,12 +23,17 @@ impl TextBuilder {
         let mut paint = Paint::default();
         paint.set_color(color);
         let align = template.align.to_skia_align();
+        let typeface = Typeface::new(
+            &template.font,
+            template.style.to_skia_text_style()
+        ).unwrap();
 
         Ok(TextBuilder {
             built_template: TextBuiltTemplate{
                 raw: template,
                 paint,
                 align,
+                typeface,
             },
         })
     }
