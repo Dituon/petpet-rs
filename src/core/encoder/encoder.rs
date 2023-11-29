@@ -12,6 +12,9 @@ pub static IMAGE_ENCODER: Lazy<ImageEncoder> = Lazy::new(|| {
     ImageEncoder::new()
 });
 
+pub static PNG_FORMAT: &'static str = "image/png";
+pub static GIF_FORMAT: &'static str = "image/gif";
+
 pub struct ImageEncoder {
     // context: Option<DirectContext>,
     png_quality: u32,
@@ -28,11 +31,13 @@ impl ImageEncoder {
         }
     }
 
-    pub fn encode(&self, images: &Vec<Image>, delay: u16) -> Result<Vec<u8>, Error> {
+    pub fn encode(&self, images: &Vec<Image>, delay: u16)
+        -> Result<(Vec<u8>, &str), Error>
+    {
         if images.len() == 1 {
-            self.encode_image(&images[0])
+            Ok((self.encode_image(&images[0])?, PNG_FORMAT))
         } else {
-            self.encode_images(images, delay)
+            Ok((self.encode_images(images, delay)?, GIF_FORMAT))
         }
     }
 

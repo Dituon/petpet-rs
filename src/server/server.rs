@@ -3,8 +3,8 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Instant;
 
-use axum::{http::StatusCode, Json, Router, routing::post};
-use axum::extract::State;
+use axum::{http::StatusCode, Json, Router, routing::post, routing::get};
+use axum::extract::{Query, State};
 use axum::http::header;
 use axum::response::IntoResponse;
 
@@ -13,6 +13,7 @@ use crate::core::errors::Error;
 use crate::core::http::avatar_data_factory::create_avatar_data;
 use crate::core::http::template_data::PetpetData;
 use crate::server::config::ServerConfig;
+use crate::server::query_template::QueryParams;
 use crate::server::service::petpet_service::PetpetService;
 
 pub struct PetpetServer {
@@ -36,7 +37,10 @@ impl PetpetServer {
         let app = Router::new()
             // .route("/", get(root))
             .route("/generate", post(
-                generate
+                generate_post
+            ))
+            .route("/generate", get(
+                generate_get
             ))
             .with_state(Arc::new(self));
 
@@ -46,7 +50,7 @@ impl PetpetServer {
     }
 }
 
-async fn generate(
+async fn generate_post(
     State(logic): State<Arc<PetpetServer>>,
     Json(payload): Json<PetpetData>,
 ) -> impl IntoResponse {
@@ -56,7 +60,23 @@ async fn generate(
     let (images, delay) = builder.build(avatar_data).await.unwrap();
     println!("download & draw: {:?}", start_time0.elapsed());
     let start_time1 = Instant::now();
-    let blob = IMAGE_ENCODER.encode(&images, delay).unwrap();
+    let (blob, format) = IMAGE_ENCODER.encode(&images, delay).unwrap();
     println!("encode: {:?}", start_time1.elapsed());
-    (StatusCode::OK, [(header::CONTENT_TYPE, "image/png")], blob)
+    (StatusCode::OK, [(header::CONTENT_TYPE, format)], blob)
+}
+
+async fn generate_get(
+    State(logic): State<Arc<PetpetServer>>,
+    Query(payload): Query<QueryParams>,
+) -> impl IntoResponse {
+    let data = payload.to_data();
+    let avatar_data = create_avatar_data(&data.avatar).unwrap();
+    let builder = logic.service.get_builder(&data.key).unwrap();
+    let start_time0 = Instant::now();
+    let (images, delay) = builder.build(avatar_data).await.unwrap();
+    println!("download & draw: {:?}", start_time0.elapsed());
+    let start_time1 = Instant::now();
+    let (blob, format) = IMAGE_ENCODER.encode(&images, delay).unwrap();
+    println!("encode: {:?}", start_time1.elapsed());
+    (StatusCode::OK, [(header::CONTENT_TYPE, format)], blob)
 }

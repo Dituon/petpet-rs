@@ -1,5 +1,4 @@
 use std::fs::File;
-use std::io::Read;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -15,7 +14,7 @@ impl ServerConfig {
         if let Ok(str) = std::fs::read_to_string(path) {
             let jd = &mut serde_json::Deserializer::from_str(&str);
             serde_path_to_error::deserialize(jd)
-                .unwrap_or(save_config(path))
+                .unwrap_or_else(|_| save_config(path))
         } else {
             save_config(path)
         }

@@ -84,7 +84,7 @@
 
 #### Server
 
-- [ ] get
+- [x] get
 - [x] post
 - [ ] form-data
 
