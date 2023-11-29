@@ -49,6 +49,7 @@ impl PetpetBuilder {
         let mut avatar_size = Vec::with_capacity(a_count);
         let mut top_avatars = Vec::with_capacity(a_count);
         let mut bottom_avatars = Vec::with_capacity(a_count);
+        let mut avatar_max_length = 0;
 
         let avatars = self.avatar_builders.build(avatar_data).await?;
         let texts = self.text_builders.build()?;
@@ -60,9 +61,11 @@ impl PetpetBuilder {
                 bottom_avatars.push(avatar)
             }
             avatar_size.push(avatar.get_size());
+            avatar_max_length += avatar.get_length();
         }
 
         let (mut surface, bgs) = self.background_builder.create_background(avatar_size)?;
+        let bgs = BackgroundBuilder::repeat_for_avatar_length(bgs, avatar_max_length);
 
         let t_delay = if self.background_builder.path.is_some() {
             self.template.delay / 10

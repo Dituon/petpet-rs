@@ -1,5 +1,5 @@
 use alloc::borrow::Cow;
-
+use rayon::prelude::*;
 use skia_safe::{AlphaType, Color, ColorType, Image, ImageInfo, Surface};
 
 use crate::core::builder::pos_builder::{compile_size, CompiledSize, eval_background_size};
@@ -69,7 +69,7 @@ impl BackgroundBuilder {
         Ok(match &self.info {
             Some((_, color)) => {
                 let mut s = skia_safe::surfaces::raster(&info, 0, None).unwrap();
-                let mut images = vec![];
+                let mut images = Vec::with_capacity(self.length);
                 if self.path.is_none() {
                     for _ in 0..self.length {
                         s.canvas().clear(*color);
@@ -84,6 +84,19 @@ impl BackgroundBuilder {
                 Cow::Borrowed(file_images)
             )
         })
+    }
+
+    pub fn repeat_for_avatar_length(bgs: Cow<Vec<Image>>, avatar_length: usize) -> Cow<Vec<Image>>{
+        if bgs.len() > 1 || avatar_length <= 1 {
+            return bgs
+        }
+
+        let new_bgs = (0..avatar_length)
+            .collect::<Vec<_>>().par_iter()
+            // TODO: Cow Image
+            .map(|_| bgs[0].clone())
+            .collect();
+        Cow::Owned(new_bgs)
     }
 }
 

@@ -120,6 +120,10 @@ impl<'a> AvatarModel<'a> {
         }
     }
 
+    pub fn get_length(&self) -> usize {
+        self.images.len()
+    }
+
     fn get_image_size(image: &Image) -> OriginSize {
         (image.width(), image.height())
     }

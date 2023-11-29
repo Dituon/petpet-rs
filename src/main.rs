@@ -4,7 +4,6 @@ extern crate reqwest;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
-use std::string::String;
 
 use gif::Repeat;
 use skia_safe::{EncodedImageFormat, Image};
@@ -49,13 +48,4 @@ pub fn save_images_to_file(images: &Vec<Image>, filename: &str) {
         frame.delay = 65;
         let _ = encoder.write_frame(&frame);
     }
-}
-
-fn read_file_to_string(file_path: &str) -> String {
-    let mut file = File::open(file_path).unwrap();
-
-    let mut content = String::new();
-    file.read_to_string(&mut content).unwrap();
-
-    content
 }
