@@ -35,7 +35,7 @@ impl TextBuilder {
             paint.set_color(stroke_color);
             paint.set_style(PaintStyle::Stroke);
             paint.set_stroke(true);
-            paint.set_stroke_width(template.stroke_size);
+            paint.set_stroke_width(template.stroke_size / 2.0);
             Some(paint)
         } else {
             None

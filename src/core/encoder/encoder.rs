@@ -12,8 +12,26 @@ pub static IMAGE_ENCODER: Lazy<ImageEncoder> = Lazy::new(|| {
     ImageEncoder::new()
 });
 
-pub static PNG_FORMAT: &'static str = "image/png";
-pub static GIF_FORMAT: &'static str = "image/gif";
+pub static PNG_FORMAT: &'static str = "png";
+pub static GIF_FORMAT: &'static str = "gif";
+
+pub enum EncodeFormat {
+    PNG,
+    GIF
+}
+
+impl EncodeFormat {
+    pub fn get_str(&self) -> &'static str {
+        match self {
+            EncodeFormat::PNG => PNG_FORMAT,
+            EncodeFormat::GIF => GIF_FORMAT,
+        }
+    }
+
+    pub fn to_format(&self) -> String {
+        format!("image/{}", self.get_str())
+    }
+}
 
 pub struct ImageEncoder {
     // context: Option<DirectContext>,
@@ -32,12 +50,12 @@ impl ImageEncoder {
     }
 
     pub fn encode(&self, images: &Vec<Image>, delay: u16)
-        -> Result<(Vec<u8>, &str), Error>
+        -> Result<(Vec<u8>, EncodeFormat), Error>
     {
         if images.len() == 1 {
-            Ok((self.encode_image(&images[0])?, PNG_FORMAT))
+            Ok((self.encode_image(&images[0])?, EncodeFormat::PNG))
         } else {
-            Ok((self.encode_images(images, delay)?, GIF_FORMAT))
+            Ok((self.encode_images(images, delay)?, EncodeFormat::GIF))
         }
     }
 
@@ -63,13 +81,9 @@ impl ImageEncoder {
             ).unwrap();
             encoder.set_repeat(Repeat::Infinite).or_else(|_| Err(ImageEncodeError("".to_string())))?;
 
-            let time = Instant::now();
             let frames: Vec<Frame> = images.par_iter().map(|img| {
-                let time = Instant::now();
                 let map = img.peek_pixels().unwrap();
                 let mut ps = map.bytes().unwrap().to_owned();
-                println!("pixel: {:?}", time.elapsed());
-                let time = Instant::now();
 
                 let mut frame = Frame::from_rgba_speed(
                     img.width() as u16,
@@ -78,20 +92,13 @@ impl ImageEncoder {
                     self.gif_quality,
                 );
                 frame.dispose = DisposalMethod::Background;
-                println!("from_pixel: {:?}", time.elapsed());
                 frame.delay = delay;
-                let time = Instant::now();
                 frame.make_lzw_pre_encoded();
-                println!("make_lzw: {:?}", time.elapsed());
                 frame
             }).collect();
-            println!("lzw: {:?}", time.elapsed());
-
-            let time = Instant::now();
             for frame in frames {
                 encoder.write_lzw_pre_encoded_frame(&frame).or_else(|_| Err(ImageEncodeError("".to_string())))?;
             }
-            println!("write: {:?}", time.elapsed());
         }
 
         Ok(bytes)

@@ -46,7 +46,7 @@ impl PetpetServer {
 
         axum::Server::bind(&addr)
             .serve(app.into_make_service())
-            .await.unwrap()
+            .await.unwrap();
     }
 }
 
@@ -62,7 +62,7 @@ async fn generate_post(
     let start_time1 = Instant::now();
     let (blob, format) = IMAGE_ENCODER.encode(&images, delay).unwrap();
     println!("encode: {:?}", start_time1.elapsed());
-    (StatusCode::OK, [(header::CONTENT_TYPE, format)], blob)
+    (StatusCode::OK, [(header::CONTENT_TYPE, format.to_format())], blob)
 }
 
 async fn generate_get(
@@ -78,5 +78,5 @@ async fn generate_get(
     let start_time1 = Instant::now();
     let (blob, format) = IMAGE_ENCODER.encode(&images, delay).unwrap();
     println!("encode: {:?}", start_time1.elapsed());
-    (StatusCode::OK, [(header::CONTENT_TYPE, format)], blob)
+    (StatusCode::OK, [(header::CONTENT_TYPE, format.to_format())], blob)
 }

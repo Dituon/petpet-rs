@@ -1,15 +1,15 @@
 use std::path::Path;
 
 use once_cell::sync::Lazy;
-use schnellru::{ByMemoryUsage, LruMap};
+use schnellru::{ByLength, LruMap};
 use skia_safe::{AlphaType, Codec, ColorType, Data, Image, ImageInfo};
 
 use crate::core::errors::Error::{self, FileError, ImageDecodeError};
 
-static MAX_MEMORY: Lazy<usize> = Lazy::new(|| 32_000_000);
+static MAX_CACHE_LENGTH: Lazy<u32> = Lazy::new(|| 32);
 
-static mut IMAGE_CACHE: Lazy<LruMap<String, Vec<Image>, ByMemoryUsage>> = Lazy::new(|| {
-    LruMap::with_memory_budget(*MAX_MEMORY)
+static mut IMAGE_CACHE: Lazy<LruMap<String, Vec<Image>, ByLength>> = Lazy::new(|| {
+    LruMap::new(ByLength::new(*MAX_CACHE_LENGTH))
 });
 
 pub fn has_image(path: &str) -> bool {

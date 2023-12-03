@@ -33,14 +33,14 @@ impl TextAlign {
 
     pub fn get_by_pos(&self, paragraph: &Paragraph, (x, y): (i32, i32)) -> Point {
         Point::from(match self {
-            TextAlign::LEFT => (x, y),
+            TextAlign::LEFT => (x, y - paragraph.alphabetic_baseline() as i32),
             TextAlign::CENTER => (
                 x - paragraph.max_width() as i32 / 2,
                 y - paragraph.height() as i32 / 2
             ),
             TextAlign::RIGHT => (
                 x - paragraph.max_width() as i32,
-                y - paragraph.height() as i32
+                y - paragraph.alphabetic_baseline() as i32
             ),
         })
     }

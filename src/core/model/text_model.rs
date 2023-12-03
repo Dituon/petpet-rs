@@ -3,7 +3,7 @@ use skia_safe::textlayout::{FontCollection, Paragraph, ParagraphBuilder, TextSty
 
 use crate::core::builder::text_builder::TextBuiltTemplate;
 use crate::core::template::petpet_template::TransformOrigin;
-use crate::core::template::text_template::TextPos;
+use crate::core::template::text_template::{TextAlign, TextPos};
 
 pub struct TextModel<'a> {
     pub template: &'a TextBuiltTemplate,
@@ -21,7 +21,12 @@ impl<'a> TextModel<'a> {
 
     pub fn draw(&self, canvas: &Canvas) {
         let (x, y, width) = match self.template.raw.pos {
-            TextPos::XY((x, y)) => (x, y, canvas.image_info().width() / 2),
+            TextPos::XY((x, y)) =>
+                (x, y, match self.template.raw.align {
+                    TextAlign::LEFT => canvas.image_info().width() - x,
+                    TextAlign::CENTER => canvas.image_info().width() / 2,
+                    TextAlign::RIGHT => x,
+                }),
             TextPos::XYW((x, y, w)) => (x, y, w),
         };
         let (fill_p, stroke_p) =
@@ -48,6 +53,10 @@ impl<'a> TextModel<'a> {
             canvas.restore();
         }
         ()
+    }
+
+    pub fn get_size(&self) -> (i32, i32) {
+        todo!()
     }
 
     fn build_paragraph(template: &TextBuiltTemplate, max_width: f32) -> (Option<Paragraph>, Option<Paragraph>) {
