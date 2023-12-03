@@ -7,8 +7,8 @@ use std::io::Write;
 
 use gif::Repeat;
 use skia_safe::{EncodedImageFormat, Image};
-use crate::server::config::ServerConfig;
 
+use crate::server::config::ServerConfig;
 use crate::server::server::PetpetServer;
 
 mod core;
@@ -17,7 +17,6 @@ mod server;
 #[tokio::main]
 async fn main() {
     let config = ServerConfig::read_or_save("./config.json");
-    print!("{:#?}", config);
     let server = PetpetServer::new(config).unwrap();
     server.run().await;
 }

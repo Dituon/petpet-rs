@@ -1,4 +1,11 @@
-use serde::{Deserialize, Serialize};
+use core::fmt::Write;
+use std::fmt;
+
+use serde::{de, Deserialize, Deserializer, Serialize};
+use serde::de::{SeqAccess, value, Visitor};
+use skia_safe::Point;
+use skia_safe::textlayout::Paragraph;
+
 use crate::core::template::petpet_template::TransformOrigin;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -16,12 +23,26 @@ pub enum TextAlign {
 }
 
 impl TextAlign {
-    pub fn to_skia_align(&self) -> skia_safe::utils::text_utils::Align {
+    pub fn to_skia_align(&self) -> skia_safe::textlayout::TextAlign {
         match self {
-            TextAlign::LEFT => skia_safe::utils::text_utils::Align::Left,
-            TextAlign::RIGHT => skia_safe::utils::text_utils::Align::Right,
-            TextAlign::CENTER => skia_safe::utils::text_utils::Align::Center
+            TextAlign::LEFT => skia_safe::textlayout::TextAlign::Left,
+            TextAlign::RIGHT => skia_safe::textlayout::TextAlign::Right,
+            TextAlign::CENTER => skia_safe::textlayout::TextAlign::Center,
         }
+    }
+
+    pub fn get_by_pos(&self, paragraph: &Paragraph, (x, y): (i32, i32)) -> Point {
+        Point::from(match self {
+            TextAlign::LEFT => (x, y),
+            TextAlign::CENTER => (
+                x - paragraph.max_width() as i32 / 2,
+                y - paragraph.height() as i32 / 2
+            ),
+            TextAlign::RIGHT => (
+                x - paragraph.max_width() as i32,
+                y - paragraph.height() as i32
+            ),
+        })
     }
 }
 
@@ -58,8 +79,8 @@ pub struct TextTemplate {
     pub align: TextAlign,
     #[serde(default = "color_default")]
     pub color: String,
-    #[serde(default = "font_default")]
-    pub font: String,
+    #[serde(default = "font_default", deserialize_with = "string_or_vec")]
+    pub font: Vec<String>,
     #[serde(default = "style_default")]
     pub style: TextStyle,
     #[serde(rename = "strokeColor", default = "stroke_color_default")]
@@ -68,6 +89,34 @@ pub struct TextTemplate {
     pub stroke_size: f32,
     #[serde(default = "origin_default")]
     pub origin: TransformOrigin,
+}
+
+fn string_or_vec<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+    where D: Deserializer<'de>
+{
+    struct StringOrVec;
+
+    impl<'de> Visitor<'de> for StringOrVec {
+        type Value = Vec<String>;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("string or list of strings")
+        }
+
+        fn visit_str<E>(self, s: &str) -> Result<Self::Value, E>
+            where E: de::Error
+        {
+            Ok(vec![s.to_string()])
+        }
+
+        fn visit_seq<S>(self, seq: S) -> Result<Self::Value, S::Error>
+            where S: SeqAccess<'de>
+        {
+            Deserialize::deserialize(value::SeqAccessDeserializer::new(seq))
+        }
+    }
+
+    deserializer.deserialize_any(StringOrVec)
 }
 
 fn size_default() -> f32 {
@@ -86,8 +135,8 @@ fn color_default() -> String {
     "#ffffff".to_string()
 }
 
-fn font_default() -> String {
-    "Arial".to_string()
+fn font_default() -> Vec<String> {
+    vec!["Arial".to_string()]
 }
 
 fn style_default() -> TextStyle {

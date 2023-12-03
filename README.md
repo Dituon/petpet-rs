@@ -32,7 +32,8 @@
 - [x] `TextData.font`
 - [x] `TextData.size`
 - [x] `TextData.align`
-- [ ] `TextData.wrap`
+- [x] `TextData.wrap.BREAK`
+- [ ] `TextData.wrap.ZOOM`
 - [x] `TextData.style`
 - [ ] `TextData.position`
 - [x] `TextData.origin`

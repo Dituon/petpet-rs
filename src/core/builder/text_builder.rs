@@ -1,5 +1,5 @@
-use skia_safe::{Paint, Typeface};
-use skia_safe::utils::text_utils::Align;
+use skia_safe::{Paint, PaintStyle};
+use skia_safe::textlayout::ParagraphStyle;
 
 use crate::core::errors::Error;
 use crate::core::loader::color_util::parse_color;
@@ -14,8 +14,7 @@ pub struct TextBuiltTemplate {
     pub raw: TextTemplate,
     pub fill_paint: Option<Paint>,
     pub stroke_paint: Option<Paint>,
-    pub align: Align,
-    pub typeface: Typeface,
+    pub paragraph_style: ParagraphStyle,
 }
 
 impl TextBuilder {
@@ -25,6 +24,7 @@ impl TextBuilder {
         let fill_paint = if fill_color.a() != 0 {
             let mut paint = Paint::default();
             paint.set_color(fill_color);
+            paint.set_style(PaintStyle::StrokeAndFill);
             Some(paint)
         } else {
             None
@@ -33,25 +33,22 @@ impl TextBuilder {
             let stroke_color = parse_color(&template.stroke_color)?;
             let mut paint = Paint::default();
             paint.set_color(stroke_color);
+            paint.set_style(PaintStyle::Stroke);
             paint.set_stroke(true);
             paint.set_stroke_width(template.stroke_size);
             Some(paint)
         } else {
             None
         };
-        let align = template.align.to_skia_align();
-        let typeface = Typeface::new(
-            &template.font,
-            template.style.to_skia_text_style()
-        ).unwrap();
+        let mut paragraph_style = ParagraphStyle::new();
+        paragraph_style.set_text_align(template.align.to_skia_align());
 
         Ok(TextBuilder {
-            built_template: TextBuiltTemplate{
+            built_template: TextBuiltTemplate {
                 raw: template,
                 fill_paint,
                 stroke_paint,
-                align,
-                typeface,
+                paragraph_style,
             },
         })
     }
