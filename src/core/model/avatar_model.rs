@@ -137,7 +137,7 @@ impl<'a> AvatarModel<'a> {
             CompiledNumberPosDimension::P2D(p2d) => {
                 let p2d = p2d[index % p2d.len()];
                 let img = self.get_image(index);
-                self.draw_zoom(canvas, img, p2d);
+                self.draw_zoom(canvas, img, p2d, index);
             }
             CompiledNumberPosDimension::P3D(p3d) => {
                 let img = self.get_image(index);
@@ -162,20 +162,24 @@ impl<'a> AvatarModel<'a> {
         canvas: &Canvas,
         img: &Image,
         (x, y, w, h): XYWH,
+        index: usize,
     ) {
         let mut paint = Paint::default();
         paint.set_alpha((self.template.raw.opacity * 255.0) as u8);
 
         self.scale_img(canvas, (x, y, w, h));
 
-        let has_angle = self.template.raw.angle != 0.0;
+        let angle = if self.template.raw.rotate {
+            (360.0 / self.template.max_length as f32) * index as f32 + self.template.raw.angle
+        } else { self.template.raw.angle };
+        let has_angle = angle != 0.0;
         if has_angle {
             canvas.save();
             let p = match self.template.raw.origin {
                 TransformOrigin::DEFAULT => Point::from((x, y)),
                 TransformOrigin::CENTER => Point::from((x + w / 2, y + h / 2)),
             };
-            canvas.rotate(self.template.raw.angle as scalar, Some(p));
+            canvas.rotate(angle, Some(p));
         }
 
         let w = w as f32;

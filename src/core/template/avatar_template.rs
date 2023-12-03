@@ -76,9 +76,9 @@ pub struct AvatarTemplate {
     #[serde(default = "resampling_default")]
     pub resampling: bool,
     #[serde(default = "angle_default")]
-    pub angle: f64,
+    pub angle: f32,
     #[serde(default = "opacity_default")]
-    pub opacity: f64,
+    pub opacity: f32,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
@@ -159,10 +159,10 @@ fn resampling_default() -> bool {
     true
 }
 
-fn angle_default() -> f64 {
+fn angle_default() -> f32 {
     0.0
 }
 
-fn opacity_default() -> f64 {
+fn opacity_default() -> f32 {
     1.0
 }

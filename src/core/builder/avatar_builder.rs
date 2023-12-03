@@ -102,11 +102,11 @@ impl AvatarBuilder {
     }
 
     fn prebuild_max_length(template: &AvatarTemplate, background_length: usize) -> usize {
-        usize::min(
+        usize::max(
             background_length,
             template.filter.iter()
                 .map(|f| f.max_length())
-                .fold(0, |max, current| max.max(current)),
+                .fold(1, |max, current| max.max(current)),
         )
     }
 
