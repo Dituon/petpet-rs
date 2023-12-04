@@ -960,6 +960,7 @@ dependencies = [
  "paste",
  "rand",
  "rayon",
+ "regex",
  "reqwest",
  "schnellru",
  "serde",

@@ -57,7 +57,7 @@ async fn generate_post(
     let avatar_data = create_avatar_data(&payload.avatar).unwrap();
     let builder = logic.service.get_builder(&payload.key).unwrap();
     let start_time0 = Instant::now();
-    let (images, delay) = builder.build(avatar_data).await.unwrap();
+    let (images, delay) = builder.build(avatar_data, payload.text).await.unwrap();
     println!("download & draw: {:?}", start_time0.elapsed());
     let start_time1 = Instant::now();
     let (blob, format) = IMAGE_ENCODER.encode(&images, delay).unwrap();
@@ -73,7 +73,7 @@ async fn generate_get(
     let avatar_data = create_avatar_data(&data.avatar).unwrap();
     let builder = logic.service.get_builder(&data.key).unwrap();
     let start_time0 = Instant::now();
-    let (images, delay) = builder.build(avatar_data).await.unwrap();
+    let (images, delay) = builder.build(avatar_data, data.text).await.unwrap();
     println!("download & draw: {:?}", start_time0.elapsed());
     let start_time1 = Instant::now();
     let (blob, format) = IMAGE_ENCODER.encode(&images, delay).unwrap();

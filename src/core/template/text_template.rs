@@ -91,6 +91,29 @@ pub struct TextTemplate {
     pub origin: TransformOrigin,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct TextData {
+    #[serde(default = "from_default")]
+    pub from: String,
+    #[serde(default = "to_default")]
+    pub to: String,
+    #[serde(default = "group_default")]
+    pub group: String,
+    #[serde(rename = "textList", default = "text_list_default")]
+    pub text_list: Vec<String>,
+}
+
+impl Default for TextData {
+    fn default() -> Self {
+        TextData {
+            from: from_default(),
+            to: to_default(),
+            group: group_default(),
+            text_list: text_list_default(),
+        }
+    }
+}
+
 fn string_or_vec<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
     where D: Deserializer<'de>
 {
@@ -153,4 +176,20 @@ fn stroke_size_default() -> f32 {
 
 fn origin_default() -> TransformOrigin {
     TransformOrigin::DEFAULT
+}
+
+fn from_default() -> String {
+    "from".to_string()
+}
+
+fn to_default() -> String {
+    "to".to_string()
+}
+
+fn group_default() -> String {
+    "group".to_string()
+}
+
+fn text_list_default() -> Vec<String> {
+    Vec::new()
 }

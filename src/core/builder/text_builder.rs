@@ -4,7 +4,7 @@ use skia_safe::textlayout::ParagraphStyle;
 use crate::core::errors::Error;
 use crate::core::loader::color_util::parse_color;
 use crate::core::model::text_model::TextModel;
-use crate::core::template::text_template::TextTemplate;
+use crate::core::template::text_template::{TextData, TextTemplate};
 
 pub struct TextBuilder {
     pub built_template: TextBuiltTemplate,
@@ -53,8 +53,8 @@ impl TextBuilder {
         })
     }
 
-    pub fn build(&self) -> TextModel {
-        TextModel::new(&self.built_template)
+    pub fn build<'a>(&'a self, data: &'a TextData) -> TextModel {
+        TextModel::new(&self.built_template, data)
     }
 }
 
@@ -74,10 +74,10 @@ impl TextBuilderList {
         })
     }
 
-    pub fn build(&self) -> Result<Vec<TextModel>, Error> {
+    pub fn build<'a>(&'a self, text_data: &'a TextData) -> Result<Vec<TextModel>, Error> {
         Ok(
             self.builders.iter()
-                .map(|builder| builder.build())
+                .map(|builder| builder.build(text_data))
                 .collect()
         )
     }

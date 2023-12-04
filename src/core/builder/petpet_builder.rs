@@ -8,6 +8,7 @@ use crate::core::builder::text_builder::TextBuilderList;
 use crate::core::errors::Error;
 use crate::core::loader::image_loader::has_image;
 use crate::core::template::petpet_template::PetpetTemplate;
+use crate::core::template::text_template::TextData;
 
 pub static MULTITHREADED_DRAWING: Lazy<bool> = Lazy::new(|| true);
 
@@ -44,7 +45,7 @@ impl PetpetBuilder {
         })
     }
 
-    pub async fn build<'a>(&'a self, avatar_data: AvatarData<'a>) -> Result<(Vec<Image>, u16), Error> {
+    pub async fn build<'a>(&'a self, avatar_data: AvatarData<'a>, text_data: TextData) -> Result<(Vec<Image>, u16), Error> {
         let a_count = self.template.avatar.len();
         let mut avatar_size = Vec::with_capacity(a_count);
         let mut top_avatars = Vec::with_capacity(a_count);
@@ -52,7 +53,7 @@ impl PetpetBuilder {
         let mut avatar_max_length = 0;
 
         let avatars = self.avatar_builders.build(avatar_data).await?;
-        let texts = self.text_builders.build()?;
+        let texts = self.text_builders.build(&text_data)?;
 
         for avatar in &avatars {
             if avatar.template.raw.avatar_on_top {

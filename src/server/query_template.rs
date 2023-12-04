@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use crate::core::template::text_template::TextData;
 use crate::core::http::template_data::{AvatarDataURL, PetpetData};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -32,6 +33,13 @@ impl QueryParams {
                 bot: self.bot_avatar,
                 group: self.group_avatar,
                 random: None,
+            },
+            text: TextData {
+                from: self.from_name,
+                to: self.to_name,
+                group: self.group_name,
+                text_list: self.text_list.split_whitespace()
+                    .map(|s| s.to_owned()).collect(),
             },
         }
     }

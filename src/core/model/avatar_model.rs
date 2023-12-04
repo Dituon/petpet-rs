@@ -25,9 +25,7 @@ pub struct AvatarModel<'a> {
     src_rect: Option<Rect>,
 }
 
-pub trait Drawable {
-    fn draw(&self, index: u8);
-}
+// TODO: pub trait Drawable
 
 impl<'a> AvatarModel<'a> {
     pub fn new(
