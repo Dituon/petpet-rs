@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
+
 use crate::core::template::text_template::TextData;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct PetpetData {
     pub key: String,
     #[serde(default = "AvatarDataURL::default")]
@@ -10,7 +11,7 @@ pub struct PetpetData {
     pub text: TextData,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct AvatarDataURL {
     pub from: Option<String>,
     pub to: Option<String>,

@@ -4,7 +4,7 @@ use std::ops::Neg;
 use std::sync::Arc;
 
 use rayon::prelude::*;
-use skia_safe::{Canvas, Image, Matrix, Paint, Path, Point, Rect, scalar};
+use skia_safe::{Canvas, Image, Matrix, Paint, Path, Point, Rect};
 use skia_safe::canvas::SrcRectConstraint;
 
 use crate::core::builder::avatar_builder::{AvatarBuiltTemplate, AvatarFrames};

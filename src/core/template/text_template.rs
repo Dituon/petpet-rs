@@ -1,4 +1,3 @@
-use core::fmt::Write;
 use std::fmt;
 
 use serde::{de, Deserialize, Deserializer, Serialize};

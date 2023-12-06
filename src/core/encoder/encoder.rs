@@ -1,5 +1,3 @@
-use std::time::Instant;
-
 use gif::{DisposalMethod, Frame, Repeat};
 use once_cell::sync::Lazy;
 use rayon::prelude::*;
