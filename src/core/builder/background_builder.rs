@@ -1,4 +1,5 @@
 use alloc::borrow::Cow;
+
 use rayon::prelude::*;
 use skia_safe::{AlphaType, Color, ColorType, Image, ImageInfo, Surface};
 
@@ -47,15 +48,20 @@ impl BackgroundBuilder {
         }
     }
 
-    pub fn create_background(&self, avatar_sizes: Vec<OriginSize>) -> Result<(Surface, Cow<Vec<Image>>), Error> {
+    pub fn create_background(&self, avatar_sizes: Vec<OriginSize>, text_sizes: Vec<OriginSize>)
+        -> Result<(Surface, Cow<Vec<Image>>), Error>
+    {
         let file_images = match &self.path {
             Some(path) => {
                 load_cached_background(path)?
             }
             None => &EMPTY_VEC
         };
+        // TODO: lazy eval
         let size = match &self.info {
-            Some((size, _)) => eval_background_size(size, avatar_sizes)?,
+            Some((size, _)) => eval_background_size(
+                size, avatar_sizes, text_sizes
+            )?,
             None => (file_images[0].width(), file_images[0].height())
         };
         let info = ImageInfo::new(

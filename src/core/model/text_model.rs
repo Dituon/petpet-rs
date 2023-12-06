@@ -1,4 +1,5 @@
 use alloc::borrow::Cow;
+
 use once_cell::sync::Lazy;
 use regex::Regex;
 use skia_safe::{Canvas, FontMgr, Paint, Point};
@@ -64,7 +65,14 @@ impl<'a> TextModel<'a> {
             canvas.save();
             let p = match self.template.raw.origin {
                 TransformOrigin::DEFAULT => Point::from((x, y)),
-                TransformOrigin::CENTER => todo!(),
+                TransformOrigin::CENTER => Point::from((
+                    x + width / 2,
+                    y + if let Some(fp) = &fill_p {
+                        fp.height()
+                    } else {
+                        stroke_p.as_ref().unwrap().height()
+                    } as i32 / 2
+                )),
             };
             canvas.rotate(self.template.raw.angle, Some(p));
         }
@@ -83,7 +91,17 @@ impl<'a> TextModel<'a> {
     }
 
     pub fn get_size(&self) -> (i32, i32) {
-        todo!()
+        let width = match self.template.raw.pos {
+            TextPos::XY(_) => 200,
+            TextPos::XYW((_, _, w)) => w,
+        };
+        let (fill_p, stroke_p) = self.build_paragraph(width as f32);
+        let height = if fill_p.is_some() {
+            fill_p.unwrap().height()
+        } else {
+            stroke_p.unwrap().height()
+        } as i32;
+        (width, height)
     }
 
     fn build_paragraph(&self, max_width: f32) -> (Option<Paragraph>, Option<Paragraph>) {
@@ -123,4 +141,3 @@ fn single_paragraph(
     paragraph.layout(max_width);
     paragraph
 }
-

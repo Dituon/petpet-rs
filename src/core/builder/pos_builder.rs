@@ -194,12 +194,17 @@ pub fn compile_size(
 pub fn eval_background_size(
     (size, expr_vec): &CompiledSize,
     avatar_size: Vec<OriginSize>,
+    text_size: Vec<OriginSize>,
 ) -> Result<OriginSize, Error> {
     let mut ctx = meval::Context::new();
 
     for (i, (w, h)) in avatar_size.iter().enumerate() {
         ctx.var(format!("avatar{}Width", i), *w as f64)
             .var(format!("avatar{}Height", i), *h as f64);
+    }
+    for (i, (w, h)) in text_size.iter().enumerate() {
+        ctx.var(format!("text{}Width", i), *w as f64)
+            .var(format!("text{}Height", i), *h as f64);
     }
 
     let mut result = size.clone();

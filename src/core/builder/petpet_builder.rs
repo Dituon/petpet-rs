@@ -65,7 +65,9 @@ impl PetpetBuilder {
             avatar_max_length += avatar.get_length();
         }
 
-        let (mut surface, bgs) = self.background_builder.create_background(avatar_size)?;
+        let (mut surface, bgs) = self.background_builder.create_background(
+            avatar_size, texts.iter().map(|t| t.get_size()).collect()
+        )?;
         let bgs = BackgroundBuilder::repeat_for_avatar_length(bgs, avatar_max_length);
 
         let t_delay = if self.background_builder.path.is_some() {
