@@ -3,7 +3,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Instant;
 
-use axum::{http::StatusCode, Json, Router, routing::post, routing::get};
+use axum::{http::StatusCode, Json, Router, routing::get, routing::post};
 use axum::extract::{Query, State};
 use axum::http::header;
 use axum::response::IntoResponse;
@@ -11,10 +11,10 @@ use axum::response::IntoResponse;
 use crate::core::encoder::encoder::IMAGE_ENCODER;
 use crate::core::errors::Error;
 use crate::core::http::avatar_data_factory::create_avatar_data;
-use crate::core::http::template_data::PetpetData;
 use crate::server::config::ServerConfig;
 use crate::server::query_template::QueryParams;
 use crate::server::service::petpet_service::PetpetService;
+use crate::server::service::service_data::PetpetServiceData;
 
 pub struct PetpetServer {
     addr: SocketAddr,
@@ -52,7 +52,7 @@ impl PetpetServer {
 
 async fn generate_post(
     State(logic): State<Arc<PetpetServer>>,
-    Json(payload): Json<PetpetData>,
+    Json(payload): Json<PetpetServiceData>,
 ) -> impl IntoResponse {
     let avatar_data = create_avatar_data(&payload.avatar).unwrap();
     let builder = logic.service.get_builder(&payload.key).unwrap();

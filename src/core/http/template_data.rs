@@ -4,7 +4,6 @@ use crate::core::template::text_template::TextData;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct PetpetData {
-    pub key: String,
     #[serde(default = "AvatarDataURL::default")]
     pub avatar: AvatarDataURL,
     #[serde(default = "TextData::default")]

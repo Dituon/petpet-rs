@@ -8,17 +8,22 @@ use std::io::Write;
 use gif::Repeat;
 use skia_safe::{EncodedImageFormat, Image};
 
-use crate::server::config::ServerConfig;
-use crate::server::server::PetpetServer;
+#[cfg(feature = "server")]
+use crate::server::{config::ServerConfig, server::PetpetServer};
 
 mod core;
 mod server;
 
 #[tokio::main]
+#[cfg(feature = "server")]
 async fn main() {
     let config = ServerConfig::read_or_save("./config.json");
     let server = PetpetServer::new(config).unwrap();
     server.run().await;
+}
+
+#[cfg(not(feature = "server"))]
+fn main() {
 }
 
 pub fn save_image_to_file(image: &Image, filename: &str) {

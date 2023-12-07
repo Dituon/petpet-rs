@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
+
+use crate::core::http::template_data::{AvatarDataURL};
 use crate::core::template::text_template::TextData;
-use crate::core::http::template_data::{AvatarDataURL, PetpetData};
+use crate::server::service::service_data::PetpetServiceData;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryParams {
@@ -24,8 +26,8 @@ pub struct QueryParams {
 }
 
 impl QueryParams {
-    pub fn to_data(self) -> PetpetData {
-        PetpetData {
+    pub fn to_data(self) -> PetpetServiceData {
+        PetpetServiceData {
             key: self.key,
             avatar: AvatarDataURL {
                 from: self.from_avatar,
