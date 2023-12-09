@@ -7,7 +7,7 @@ use skia_safe::textlayout::{FontCollection, Paragraph, ParagraphBuilder, TextSty
 
 use crate::core::builder::text_builder::TextBuiltTemplate;
 use crate::core::template::petpet_template::TransformOrigin;
-use crate::core::template::text_template::{TextAlign, TextData, TextPos};
+use crate::core::template::text_template::{TextAlign, TextData, TextPos, TextWrap};
 
 static TEXT_VAR_REGEX: Lazy<Regex> = Lazy::new(||
     Regex::new(r#"\$txt([1-9]\d*)\[(.*?)]"#).unwrap()
@@ -58,7 +58,26 @@ impl<'a> TextModel<'a> {
                 }),
             TextPos::XYW((x, y, w)) => (x, y, w),
         };
-        let (fill_p, stroke_p) = self.build_paragraph(width as f32);
+        let (mut fill_p, mut stroke_p) = self.build_paragraph(width as f32);
+
+        if let TextWrap::ZOOM = self.template.raw.wrap {
+            if let Some(mut p) = fill_p {
+                p.layout(f32::MAX);
+                let font_size = self.template.raw.size * (width as f32 / p.min_intrinsic_width());
+                fill_p = Some(single_paragraph(
+                    &self.template, &self.text, font_size,
+                    &self.template.fill_paint.as_ref().unwrap(), width as f32,
+                ))
+            }
+            if let Some(mut p) = stroke_p {
+                p.layout(f32::MAX);
+                let font_size = self.template.raw.size * (width as f32 / p.min_intrinsic_width());
+                stroke_p = Some(single_paragraph(
+                    &self.template, &self.text, font_size,
+                    &self.template.stroke_paint.as_ref().unwrap(), width as f32,
+                ))
+            }
+        }
 
         let has_angle = self.template.raw.angle != 0.0;
         if has_angle {
@@ -107,10 +126,14 @@ impl<'a> TextModel<'a> {
     fn build_paragraph(&self, max_width: f32) -> (Option<Paragraph>, Option<Paragraph>) {
         let mut result = (None, None);
         if let Some(paint) = &self.template.fill_paint {
-            result.0 = Some(single_paragraph(&self.template, &self.text, paint, max_width))
+            result.0 = Some(single_paragraph(
+                &self.template, &self.text, self.template.raw.size, paint, max_width,
+            ))
         }
         if let Some(paint) = &self.template.stroke_paint {
-            result.1 = Some(single_paragraph(&self.template, &self.text, paint, max_width))
+            result.1 = Some(single_paragraph(
+                &self.template, &self.text, self.template.raw.size, paint, max_width,
+            ))
         }
         result
     }
@@ -119,6 +142,7 @@ impl<'a> TextModel<'a> {
 fn single_paragraph(
     template: &TextBuiltTemplate,
     text: &str,
+    size: f32,
     paint: &Paint,
     max_width: f32,
 ) -> Paragraph {
@@ -132,7 +156,7 @@ fn single_paragraph(
         &template.paragraph_style, font_collection,
     );
     let mut ts = TextStyle::new();
-    ts.set_font_size(template.raw.size);
+    ts.set_font_size(size);
     ts.set_foreground_paint(paint);
     ts.set_font_style(template.raw.style.to_skia_text_style());
     paragraph_builder.push_style(&ts);

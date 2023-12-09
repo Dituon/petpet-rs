@@ -45,7 +45,13 @@ impl TextAlign {
     }
 }
 
-#[deny(warnings)]
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub enum TextWrap {
+    BREAK,
+    ZOOM,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TextStyle {
     PLAIN,
@@ -76,6 +82,8 @@ pub struct TextTemplate {
     pub angle: f32,
     #[serde(default = "align_default")]
     pub align: TextAlign,
+    #[serde(default = "wrap_default")]
+    pub wrap: TextWrap,
     #[serde(default = "color_default")]
     pub color: String,
     #[serde(default = "font_default", deserialize_with = "string_or_vec")]
@@ -151,6 +159,10 @@ fn angle_default() -> f32 {
 
 fn align_default() -> TextAlign {
     TextAlign::LEFT
+}
+
+fn wrap_default() -> TextWrap {
+    TextWrap::BREAK
 }
 
 fn color_default() -> String {
