@@ -5,8 +5,7 @@ extern crate jni;
 #[cfg(feature = "java")]
 use jni::JNIEnv;
 #[cfg(feature = "java")]
-use jni::objects::{JByteArray, JClass, JObject, JString};
-use jni::objects::{AsJArrayRaw, JObjectArray};
+use jni::objects::{JByteArray, JClass, JObject, JString, AsJArrayRaw, JObjectArray};
 #[cfg(feature = "java")]
 use once_cell::sync::Lazy;
 #[cfg(feature = "python")]
@@ -218,10 +217,6 @@ pub unsafe extern "C" fn Java_moe_d2n_petpetrs_PetpetRsBuilder_builderBuildByObj
     ptr: *mut PetpetBuilder,
     avatar_data: JObject<'local>, text_data: JObject<'local>,
 ) -> JByteArray<'local> {
-    // let field1: jint = env.get_field(&template, " field1 ", "I").unwrap().l().unwrap();
-    // let field2: JString = JString::from(env.get_field(&template, "test", "Ljava/lang/String;").unwrap().l().unwrap());
-    // let str: String = env.get_string(&field2).unwrap().into();
-
     if ptr.is_null() {
         let _ = env.throw_new("java/lang/NullPointerException", "");
         return JByteArray::default();

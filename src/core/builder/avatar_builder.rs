@@ -155,13 +155,13 @@ impl AvatarBuilderList {
         let mut avatars = Vec::with_capacity(res.len());
         for i in 0..res.len() {
             let t = types[i];
-            let (imgs, delay) = &res.remove(i)?;
+            let (imgs, delay) = res.remove(0)?;
             for (_, _, builder) in &self.builders {
                 if by_type(&builder.built_template.raw._type) != t {
                     continue;
                 }
                 avatars.push(builder.build(
-                    (Arc::clone(imgs), *delay)
+                    (Arc::clone(&imgs), delay)
                 )?);
             }
         }
@@ -177,16 +177,20 @@ fn build_future(types: usize, data: AvatarData)
     if types & FROM != 0 {
         future_vec.push(data.from.ok_or_else(|| MissingDataError("Missing FROM data".to_string()))?);
         extra_vec.push(FROM);
-    } else if types & TO != 0 {
+    }
+    if types & TO != 0 {
         future_vec.push(data.to.ok_or_else(|| MissingDataError("Missing TO data".to_string()))?);
         extra_vec.push(TO);
-    } else if types & GROUP != 0 {
+    }
+    if types & GROUP != 0 {
         future_vec.push(data.group.ok_or_else(|| MissingDataError("Missing GROUP data".to_string()))?);
         extra_vec.push(GROUP);
-    } else if types & BOT != 0 {
+    }
+    if types & BOT != 0 {
         future_vec.push(data.bot.ok_or_else(|| MissingDataError("Missing BOT data".to_string()))?);
         extra_vec.push(BOT);
-    } else if types & RANDOM != 0 {
+    }
+    if types & RANDOM != 0 {
         let mut vec = data.random;
         if vec.is_empty() {
             return Err(MissingDataError("Missing RANDOM data".to_string()));
