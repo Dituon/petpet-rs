@@ -144,7 +144,7 @@ impl<'a> AvatarModel<'a> {
                     Point::new(0.0, img.height() as f32),
                     Point::new(img.width() as f32, img.height() as f32),
                     Point::new(img.width() as f32, 0.0),
-                ], &p3d[index % p3d.len()]).ok_or(TemplateError(
+                ], &p3d[index % p3d.len()]).ok_or_else(|| TemplateError(
                     format!("can not build Matrix, {:?}", &p3d[index % p3d.len()])
                 ))?;
                 canvas.concat(&m);
@@ -165,7 +165,7 @@ impl<'a> AvatarModel<'a> {
         let mut paint = Paint::default();
         paint.set_alpha((self.template.raw.opacity * 255.0) as u8);
 
-        self.scale_img(canvas, (x, y, w, h));
+        let scaled = self.scale_img(canvas, (x, y, w, h));
 
         let angle = if self.template.raw.rotate {
             (360.0 / self.template.max_length as f32) * index as f32 + self.template.raw.angle
@@ -180,22 +180,22 @@ impl<'a> AvatarModel<'a> {
             canvas.rotate(angle, Some(p));
         }
 
-        let w = w as f32;
-        let h = h as f32;
+        let wf = w as f32;
+        let hf = h as f32;
         match self.template.raw.fit {
             AvatarFit::FILL => {
-                let rect = Rect::from_xywh(x as f32, y as f32, w, h);
+                let rect = Rect::from_xywh(x as f32, y as f32, wf, hf);
                 canvas.draw_image_rect(img, self.get_src_rect(), rect, &paint);
             }
             AvatarFit::CONTAIN => {
                 let iw = img.width() as f32;
                 let ih = img.height() as f32;
-                let scale = f32::min(w / iw, h / ih);
+                let scale = f32::min(wf / iw, hf / ih);
 
                 let scaled_width = iw * scale;
                 let scaled_height = ih * scale;
-                let offset_x = x as f32 + (w - scaled_width) / 2.0;
-                let offset_y = y as f32 + (h - scaled_height) / 2.0;
+                let offset_x = x as f32 + (wf - scaled_width) / 2.0;
+                let offset_y = y as f32 + (hf - scaled_height) / 2.0;
 
                 let rect = Rect::from_xywh(offset_x, offset_y, scaled_width, scaled_height);
                 canvas.draw_image_rect(img, self.get_src_rect(), rect, &paint);
@@ -203,14 +203,14 @@ impl<'a> AvatarModel<'a> {
             AvatarFit::COVER => {
                 let iw = img.width() as f32;
                 let ih = img.height() as f32;
-                let scale = f32::max(w / iw, h / ih);
+                let scale = f32::max(wf / iw, hf / ih);
 
                 let scaled_width = iw * scale;
                 let scaled_height = ih * scale;
-                let offset_x = x as f32 + (w - scaled_width) / 2.0;
-                let offset_y = y as f32 + (h - scaled_height) / 2.0;
-                let dx = scaled_width - w;
-                let dy = scaled_height - h;
+                let offset_x = x as f32 + (wf - scaled_width) / 2.0;
+                let offset_y = y as f32 + (hf - scaled_height) / 2.0;
+                let dx = scaled_width - wf;
+                let dy = scaled_height - hf;
                 let pdx: f32 = dx / scale / 2.0;
                 let pdy: f32 = dy / scale / 2.0;
 
@@ -233,26 +233,28 @@ impl<'a> AvatarModel<'a> {
         if has_angle {
             canvas.restore();
         }
+        if scaled {
+            self.scale_img(canvas, (x, y, w, h));
+        }
     }
 
-    fn scale_img(&self, canvas: &Canvas, (x, y, w, h): XYWH) {
+    fn scale_img(&self, canvas: &Canvas, (x, y, w, h): XYWH) -> bool {
+        if self.template.raw.style.is_empty() {
+            return false
+        }
+        let mut scale = (1.0, 1.0);
         for style in &self.template.raw.style {
             match style {
-                AvatarStyle::MIRROR => {
-                    let p = Point::from((w / 2 + x, h / 2 + y));
-                    canvas.translate(p);
-                    canvas.scale((-1.0, 1.0));
-                    canvas.translate(p.neg());
-                }
-                AvatarStyle::FLIP => {
-                    let p = Point::from((w / 2 + x, h / 2 + y));
-                    canvas.translate(p);
-                    canvas.scale((1.0, -1.0));
-                    canvas.translate(p.neg());
-                }
-                _ => {}
+                AvatarStyle::MIRROR => scale.0 = -1.0,
+                AvatarStyle::FLIP => scale.1 = -1.0,
+                _ => return false
             }
         }
+        let p = Point::from((w / 2 + x, h / 2 + y));
+        canvas.translate(p);
+        canvas.scale(scale);
+        canvas.translate(p.neg());
+        true
     }
 
     fn crop_to_circle(image: &Image) -> Image {

@@ -62,7 +62,7 @@ impl PetpetBuilder {
                 bottom_avatars.push(avatar)
             }
             avatar_size.push(avatar.get_size());
-            avatar_max_length += avatar.get_length();
+            avatar_max_length = usize::max(avatar_max_length, avatar.get_length());
         }
 
         let (mut surface, bgs) = self.background_builder.create_background(
