@@ -23,13 +23,12 @@ pub struct TextModel<'a> {
 
 impl<'a> TextModel<'a> {
     pub fn new(template: &'a TextBuiltTemplate, text_data: &'a TextData) -> Self {
-        let text_raw = &template.raw.text;
-        let mut text = text_raw.replace("$from", &text_data.from)
+        let mut text = template.raw.text.replace("$from", &text_data.from)
             .replace("$to", &text_data.to)
             .replace("$group", &text_data.group);
 
         let text_list_len = text_data.text_list.len();
-        for cap in TEXT_VAR_REGEX.captures_iter(text_raw) {
+        for cap in TEXT_VAR_REGEX.captures_iter(&text.clone()) {
             if let (Some(num), Some(content)) = (cap.get(1), cap.get(2)) {
                 let i: usize = num.as_str().parse().unwrap_or_default();
                 let replace_text: Cow<str> = if i > text_list_len {
@@ -63,7 +62,7 @@ impl<'a> TextModel<'a> {
         if let TextWrap::ZOOM = self.template.raw.wrap {
             if let Some(mut p) = fill_p {
                 p.layout(f32::MAX);
-                let font_size = self.template.raw.size * (width as f32 / p.min_intrinsic_width());
+                let font_size = self.template.raw.size * (width as f32 / p.max_intrinsic_width());
                 fill_p = Some(single_paragraph(
                     &self.template, &self.text, font_size,
                     &self.template.fill_paint.as_ref().unwrap(), width as f32,
@@ -71,7 +70,7 @@ impl<'a> TextModel<'a> {
             }
             if let Some(mut p) = stroke_p {
                 p.layout(f32::MAX);
-                let font_size = self.template.raw.size * (width as f32 / p.min_intrinsic_width());
+                let font_size = self.template.raw.size * (width as f32 / p.max_intrinsic_width());
                 stroke_p = Some(single_paragraph(
                     &self.template, &self.text, font_size,
                     &self.template.stroke_paint.as_ref().unwrap(), width as f32,
