@@ -15,7 +15,7 @@ java = ["jni"]
 
 [dependencies]
 skia-safe = { version = "0.68.0", features = ["gl", "gpu", "textlayout"] }
-reqwest = { version = "0.11.22", features = [] }
+reqwest = { version = "0.11.22", default-features = false, features = ["rustls"] }
 url = "2.4.1"
 futures = "0.3"
 serde_json = "1.0.108"
@@ -26,7 +26,7 @@ rand = "0.8.5"
 meval = "0.2.0"
 schnellru = "0.2.1"
 gif = { version = "0.12.0" }
-axum = { version = "0.6", optional = true }
+axum = { version = "0.6", optional = true, features = [] }
 tracing-subscriber = "0.3.18"
 rayon = "1.8.0"
 paste = "1.0.14"
@@ -40,5 +40,14 @@ pythonize = { version = "0.20.0", optional = true }
 
 jni = { version = "0.21.1", optional = true }
 
+#[target.'cfg(target_os = "linux")'.dependencies]
+#openssl = { version = "0.10", features = ["vendored"] }
+
+#[package.metadata.cross.build.env]
+#passthrough = ["OPENSSL_DIR", "OPENSSL_LIB_DIR", "OPENSSL_INCLUDE_DIR"]
+
 [profile.release]
 strip = true
+
+#[target.aarch64-linux-android]
+#linker = "aarch64-linux-android29-clang"
