@@ -3,6 +3,9 @@ name = "petpet-rs"
 version = "0.0.1"
 edition = "2021"
 
+[target.aarch64-unknown-linux-gnu.package]
+build = "build.rs"
+
 [lib]
 name = "petpet"
 crate-type = ["cdylib"]
@@ -14,7 +17,7 @@ python = ["pyo3", "pythonize", "pyo3-asyncio"]
 java = ["jni"]
 
 [dependencies]
-skia-safe = { version = "0.68.0", features = ["gl", "gpu", "textlayout"] }
+skia-safe = { version = "0.72.0", features = ["gl", "gpu", "textlayout"] }
 reqwest = { version = "0.11.22", default-features = false, features = ["rustls"] }
 url = "2.4.1"
 futures = "0.3"
@@ -40,8 +43,13 @@ pythonize = { version = "0.20.0", optional = true }
 
 jni = { version = "0.21.1", optional = true }
 
-#[target.'cfg(target_os = "linux")'.dependencies]
-#openssl = { version = "0.10", features = ["vendored"] }
+
+[target.aarch64-unknown-linux-gnu.dependencies]
+reqwest = { features = ["rustls", "native-tls"] }
+
+
+# [target.'cfg(target_os = "linux")'.dependencies]
+# openssl = { version = "0.10", features = ["vendored"] }
 
 #[package.metadata.cross.build.env]
 #passthrough = ["OPENSSL_DIR", "OPENSSL_LIB_DIR", "OPENSSL_INCLUDE_DIR"]
@@ -49,5 +57,11 @@ jni = { version = "0.21.1", optional = true }
 [profile.release]
 strip = true
 
-#[target.aarch64-linux-android]
-#linker = "aarch64-linux-android29-clang"
+[package.metadata.cross.target.aarch64-unknown-linux-gnu]
+image = "ghcr.io/cross-rs/aarch64-unknown-linux-gnu:main"
+pre-build = [
+    "dpkg --add-architecture $CROSS_DEB_ARCH",
+    "apt-get update && apt-get --assume-yes install libssl-dev:$CROSS_DEB_ARCH libfontconfig1-dev:$CROSS_DEB_ARCH libfreetype6-dev:$CROSS_DEB_ARCH",
+    "cp -r /usr/lib/aarch64-linux-gnu/* /usr/aarch64-linux-gnu/lib/"
+]
+

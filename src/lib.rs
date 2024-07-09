@@ -2,6 +2,7 @@ extern crate alloc;
 #[cfg(feature = "java")]
 extern crate jni;
 
+
 #[cfg(feature = "java")]
 use jni::JNIEnv;
 #[cfg(feature = "java")]
@@ -9,15 +10,21 @@ use jni::objects::{JByteArray, JClass, JObject, JString, AsJArrayRaw, JObjectArr
 #[cfg(feature = "java")]
 use once_cell::sync::Lazy;
 #[cfg(feature = "python")]
+use pyo3::exceptions::PyValueError;
+#[cfg(feature = "python")]
 use pyo3::prelude::*;
+#[cfg(feature = "python")]
+use pyo3::types::{PyBytes, PyString, PyTuple};
+#[cfg(feature = "python")]
+use pythonize::depythonize;
 
-use crate::core::builder::petpet_builder::PetpetBuilder;
-use crate::core::encoder::encoder::{EncodeFormat, IMAGE_ENCODER};
-use crate::core::errors::Error;
-use crate::core::http::avatar_data_factory::create_avatar_data;
-use crate::core::http::template_data::{AvatarDataURL, PetpetData};
-use crate::core::template::petpet_template::PetpetTemplate;
-use crate::core::template::text_template::TextData;
+
+
+
+
+
+
+
 
 mod core;
 
@@ -105,7 +112,7 @@ static RUNTIME: Lazy<tokio::runtime::Runtime> = Lazy::new(||
 
 #[cfg(feature = "java")]
 #[no_mangle]
-pub extern "C" fn Java_moe_d2n_petpetrs_PetpetRsBuilder_createBuilder<'local>(
+pub extern "C" fn Java_PetpetRsBuilder_createBuilder<'local>(
     mut env: JNIEnv<'local>, _class: JClass<'local>,
     template: JString<'local>, path: JString<'local>,
 ) -> *const PetpetBuilder {
@@ -174,7 +181,7 @@ macro_rules! jni_string_array_prop {
 
 #[cfg(feature = "java")]
 #[no_mangle]
-pub unsafe extern "C" fn Java_moe_d2n_petpetrs_PetpetRsBuilder_builderBuildByString<'local>(
+pub unsafe extern "C" fn Java_PetpetRsBuilder_builderBuildByString<'local>(
     mut env: JNIEnv<'local>, class: JClass<'local>,
     ptr: *mut PetpetBuilder,
     data: JString<'local>,
@@ -212,7 +219,7 @@ unsafe fn builder_build_by_string<'local>(
 
 #[cfg(feature = "java")]
 #[no_mangle]
-pub unsafe extern "C" fn Java_moe_d2n_petpetrs_PetpetRsBuilder_builderBuildByObjects<'local>(
+pub unsafe extern "C" fn Java_PetpetRsBuilder_builderBuildByObjects<'local>(
     mut env: JNIEnv<'local>, class: JClass<'local>,
     ptr: *mut PetpetBuilder,
     avatar_data: JObject<'local>, text_data: JObject<'local>,
@@ -264,7 +271,7 @@ unsafe fn builder_build_by_objects<'local>(
 
 #[cfg(feature = "java")]
 #[no_mangle]
-pub unsafe extern "C" fn Java_moe_d2n_petpetrs_PetpetRsBuilder_closeBuilder(_env: JNIEnv, _class: JClass, ptr: *mut PetpetBuilder) {
+pub unsafe extern "C" fn Java_PetpetRsBuilder_closeBuilder(_env: JNIEnv, _class: JClass, ptr: *mut PetpetBuilder) {
     if ptr.is_null() {
         return;
     }

@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class BaseTest {
+
     static {
         PetpetJNILoader.loadLibrary("./", "petpet");
         System.out.println("load library success");

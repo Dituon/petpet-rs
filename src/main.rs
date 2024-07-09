@@ -10,6 +10,7 @@ use skia_safe::{EncodedImageFormat, Image};
 
 #[cfg(feature = "server")]
 use crate::server::{config::ServerConfig, server::PetpetServer};
+// use crate::server::service::petpet_service::PetpetService;
 
 mod core;
 mod server;
@@ -18,6 +19,11 @@ mod server;
 #[cfg(feature = "server")]
 async fn main() {
     let config = ServerConfig::read_or_save("./config.json");
+    // let service = PetpetService::with_paths(&config.data_path).unwrap();
+    // &service.generate_all().await;
+    // let f = FontMgr::new();
+    // let _: Vec<String> = dbg!(f.family_names().collect());
+
     let server = PetpetServer::new(config).unwrap();
     server.run().await;
 }

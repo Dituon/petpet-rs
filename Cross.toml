@@ -1,0 +1,8 @@
+# [target.aarch64-unknown-linux-gnu]
+# pre-build = [
+#     "uiuiuii",
+#     "echo -e '#!/bin/bash\necho test' > /usr/bin/test-echo",
+#     "chmod +x /usr/bin/test-echo",
+#     "dpkg --add-architecture $CROSS_DEB_ARCH",
+#     "apt-get update && apt-get --assume-yes install libfontconfig1:$CROSS_DEB_ARCH libfreetype6:$CROSS_DEB_ARCH",
+# ]

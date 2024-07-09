@@ -1,10 +1,17 @@
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::Write;
 use std::path::Path;
+use std::time::Instant;
 
 use crate::core::builder::petpet_builder::PetpetBuilder;
+use crate::core::encoder::encoder::IMAGE_ENCODER;
 use crate::core::errors::Error;
 use crate::core::errors::Error::{FileError, TemplateError};
+use crate::core::http::avatar_data_factory::create_avatar_data;
+use crate::core::http::template_data::AvatarDataURL;
 use crate::core::template::petpet_template::PetpetTemplate;
+use crate::core::template::text_template::TextData;
 
 pub struct PetpetService {
     builder_map: HashMap<String, PetpetBuilder>,
@@ -65,5 +72,29 @@ impl PetpetService {
             s.join_path(&path)?;
         }
         Ok(s)
+    }
+
+    pub async fn generate_all(&self) {
+        let avatar = Some("https://avatars.githubusercontent.com/u/68615161?v=4".to_string());
+        for (k, v) in &self.builder_map {
+            println!("{}", k);
+            let b = &AvatarDataURL {
+                from: avatar.clone(),
+                to: avatar.clone(),
+                bot: avatar.clone(),
+                group: avatar.clone(),
+                random: None,
+            };
+            let t = TextData::default();
+            let data = create_avatar_data(b).unwrap();
+            let start_time0 = Instant::now();
+            let (images, delay) = v.build(data, t).await.unwrap();
+            println!("download & draw: {:?}", start_time0.elapsed());
+            let start_time1 = Instant::now();
+            let (blob, format) = IMAGE_ENCODER.encode(&images, delay).unwrap();
+            println!("encode: {:?}", start_time1.elapsed());
+            let mut file = File::create(format!("./output/{}.{}", k, format.get_str())).unwrap();
+            file.write_all(&blob).expect("TODO: panic message");
+        }
     }
 }
