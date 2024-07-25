@@ -14,7 +14,7 @@ use crate::core::template::petpet_template::PetpetTemplate;
 use crate::core::template::text_template::TextData;
 
 pub struct PetpetService {
-    builder_map: HashMap<String, PetpetBuilder>,
+    pub builder_map: HashMap<String, PetpetBuilder>,
 }
 
 impl PetpetService {

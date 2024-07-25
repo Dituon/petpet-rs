@@ -18,7 +18,7 @@ java = ["jni"]
 
 [dependencies]
 skia-safe = { version = "0.72.0", features = ["gl", "gpu", "textlayout"] }
-reqwest = { version = "0.11.22", default-features = false, features = ["rustls"] }
+reqwest = { version = "0.11.22", default-features = false, features = ["rustls", "default-tls"] }
 url = "2.4.1"
 futures = "0.3"
 serde_json = "1.0.108"
@@ -36,6 +36,7 @@ paste = "1.0.14"
 serde_path_to_error = "0.1.14"
 color-art = "0.3.7"
 regex = "1.10.2"
+log = "0.4"
 
 pyo3 = { version = "0.20.0", optional = true, features = ["extension-module"] }
 pyo3-asyncio = { version = "0.20.0", optional = true, features = ["tokio-runtime"] }
@@ -44,8 +45,8 @@ pythonize = { version = "0.20.0", optional = true }
 jni = { version = "0.21.1", optional = true }
 
 
-[target.aarch64-unknown-linux-gnu.dependencies]
-reqwest = { features = ["rustls", "native-tls"] }
+#[target.aarch64-unknown-linux-gnu.dependencies]
+#reqwest = { features = ["rustls", "native-tls"] }
 
 
 # [target.'cfg(target_os = "linux")'.dependencies]

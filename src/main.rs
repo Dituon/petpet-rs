@@ -10,6 +10,7 @@ use skia_safe::{EncodedImageFormat, Image};
 
 #[cfg(feature = "server")]
 use crate::server::{config::ServerConfig, server::PetpetServer};
+use crate::server::service::petpet_service::PetpetService;
 // use crate::server::service::petpet_service::PetpetService;
 
 mod core;
