@@ -62,7 +62,7 @@ impl<'a> TextModel<'a> {
         if let TextWrap::ZOOM = self.template.raw.wrap {
             if let Some(mut p) = fill_p {
                 p.layout(f32::MAX);
-                let font_size = self.template.raw.size * (width as f32 / p.max_intrinsic_width());
+                let font_size = f32::floor(self.template.raw.size * (width as f32 / p.max_intrinsic_width()));
                 fill_p = Some(single_paragraph(
                     &self.template, &self.text, font_size,
                     &self.template.fill_paint.as_ref().unwrap(), width as f32,
@@ -70,7 +70,7 @@ impl<'a> TextModel<'a> {
             }
             if let Some(mut p) = stroke_p {
                 p.layout(f32::MAX);
-                let font_size = self.template.raw.size * (width as f32 / p.max_intrinsic_width());
+                let font_size = f32::floor(self.template.raw.size * (width as f32 / p.max_intrinsic_width()));
                 stroke_p = Some(single_paragraph(
                     &self.template, &self.text, font_size,
                     &self.template.stroke_paint.as_ref().unwrap(), width as f32,
